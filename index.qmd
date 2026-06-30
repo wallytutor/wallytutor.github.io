@@ -68,24 +68,16 @@ Numerical Simulation
 
 Materials Science
 : Calphad approach, kinetics modeling, mechanical, thermal, and microstructural analyses.
+
+Languages
+: Portuguese, French (Fluent/C2), English (Fluent/C1), Spanish (Conversational/B2), German (Basic/A2).
 :::
 
-# Languages
+# Papers
 
-Portuguese
-: Native
+- [Carbonitriding of low alloy steels: Mechanical and metallurgical responses](https://doi.org/10.1016/j.msea.2017.03.077). *Materials Science and Engineering: A*.
 
-French
-: Fluent (C2)
-
-English
-: Fluent (C1)
-
-Spanish
-: Conversational (B2)
-
-German
-: Basic (A2)
+- [Interaction Mechanisms between $\text{Ar-O}_2$ Post-discharge and Biphenyl](https://doi.org/10.1002/ppap.201100119). *Plasma Processes and Polymers*.
 
 # Experience
 
@@ -95,7 +87,7 @@ German
 **Imerys** | *Vaulx-Milieu, France*
 
 Keywords
-: CFD, Heat Transfer, Combustion, Kinetics
+: *CFD, Heat Transfer, Combustion, Kinetics*
 
 - Introduced and internalized simulation activities.
 
@@ -112,7 +104,7 @@ Keywords
 **ArcelorMittal** | *Maizières-les-Metz, France*
 
 Keywords
-: Modeling, Data Science, *Digitalization*
+: *Modeling, Data Science, Digitalization*
 
 - Developed low-order physical and data-driven models of continuous annealing and galvanizing furnaces.
 
@@ -127,7 +119,7 @@ Keywords
 **IRT M2P** | *Metz, France*
 
 Keywords
-: Transport, Chemical Kinetics, Characterization
+: *Transport, Chemical Kinetics, Characterization*
 
 - Modeled transport phenomena and chemical kinetics of acetylene pyrolysis and diffusion in solids.
 
@@ -140,7 +132,7 @@ Keywords
 **Aker Solutions** | *Curitiba, Brazil*
 
 Keywords
-: Materials Selection, Quality Assurance
+: *Materials Selection, Quality Assurance*
 
 - Performed materials selection, specification, and fluid compatibility analysis for subsea oil & gas equipment.
 
