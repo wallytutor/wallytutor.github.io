@@ -1,0 +1,148 @@
+---
+title: "Walter Dal'Maz Silva, Ph.D."
+subtitle: "Research Engineer in Data-Driven & Physical Modeling"
+personal-info: "Brazilian, 37, living in Lyon, France"
+abstract-title: ""
+
+abstract: |
+  Research Engineer with over a decade of industrial experience spanning Oil & Gas, metallic materials processing and coatings, and high-temperature processes applied to ceramic materials. Expertise covers scientific computing, software engineering, numerical simulations, materials science, and applied machine learning. Specialized in bridging the gap between materials, processing, and design through physical and data-driven modeling. Fluent in Portuguese, French, and English. Active mountaineer, climber, ultra trail runner, and mountain biker.
+
+filters:
+  - template/blocks.lua
+
+format:
+  typst:
+    template: template/styles.typ
+    pdf-standard: [a-2b, ua-1]
+    keep-typ: false
+
+  html:
+    css: template/styles.css
+    theme: cosmo
+    toc: false
+---
+
+# Contact
+
+Address
+: 69 cours Richard Vitton, Lyon 69003
+
+Email
+: [walter.dalmazsilva@gmail.com](mailto:walter.dalmazsilva@gmail.com)
+
+Mobile
+: (+33) 6 59 05 25 15
+
+GitHub:
+: [WallyTutor](https://github.com/wallytutor)
+
+# Education
+
+::: {.education-entry}
+### PhD in Materials Science (2013 -- 2017)
+
+Université de Lorraine, Nancy
+
+[Thesis](https://theses.fr/2017LORR0158) on thermochemical processing and gas-solid reactions under the supervision of Dr. Thierry Belmonte.
+:::
+
+::: {.education-entry}
+### Degree in Materials Engineering (2007 -- 2011)
+
+Universidade Federal de Santa Catarina, Florianópolis
+
+Specialized in plasma processing and materials selection under the supervision of Dr. Ana Maria Maliska.
+:::
+
+# Skills
+
+::: {.inline-dl}
+Scientific Programming
+: Python (and its ecosystem), Julia, Rust, Fortran, C/C++, Octave/MATLAB, shell scripting.
+
+Data Science & ML
+: NumPy, SciPy, scikit-learn, PyTorch, TensorFlow, Pandas, SQLAlchemy, Streamlit, Gradio.
+
+Numerical Simulation
+: OpenFOAM, SU2, Ansys Fluent, Elmer Multiphysics, FEniCSx, Cantera, Sundials solvers.
+
+Materials Science
+: Calphad approach, kinetics modeling, mechanical, thermal, and microstructural analyses.
+:::
+
+# Languages
+
+Portuguese
+: Native
+
+French
+: Fluent (C2)
+
+English
+: Fluent (C1)
+
+Spanish
+: Conversational (B2)
+
+German
+: Basic (A2)
+
+# Experience
+
+::: {.experience-entry}
+### Research Engineer (Feb 2022 -- Present)
+
+**Imerys** | *Vaulx-Milieu, France*
+
+Keywords
+: CFD, Heat Transfer, Combustion, Kinetics
+
+- Introduced and internalized simulation activities.
+
+- Developed an in-house state-of-the-art rotary kiln model coupled with custom materials reaction kinetics.
+
+- Developed a transient thermal energy storage model for the simulation and design of storage systems.
+
+- Modeled combustion, heat transfer, and flow patterns in rotary kilns and high-temperature furnaces.
+:::
+
+::: {.experience-entry}
+### Research Engineer (May 2017 -- Jan 2022)
+
+**ArcelorMittal** | *Maizières-les-Metz, France*
+
+Keywords
+: Modeling, Data Science, *Digitalization*
+
+- Developed low-order physical and data-driven models of continuous annealing and galvanizing furnaces.
+
+- Led digital transformation, data science, and machine learning initiatives for a department of 60+ people.
+
+- Resolved production crises through large-scale data analysis, validated by industrial trials.
+:::
+
+::: {.experience-entry}
+### Research Engineer (Nov 2013 -- Nov 2016)
+
+**IRT M2P** | *Metz, France*
+
+Keywords
+: Transport, Chemical Kinetics, Characterization
+
+- Modeled transport phenomena and chemical kinetics of acetylene pyrolysis and diffusion in solids.
+
+- Characterized gear steels for aerospace and automotive applications (SEM/TEM, mechanical testing).
+:::
+
+::: {.experience-entry}
+### Product Engineer (Jan 2012 -- Oct 2013)
+
+**Aker Solutions** | *Curitiba, Brazil*
+
+Keywords
+: Materials Selection, Quality Assurance
+
+- Performed materials selection, specification, and fluid compatibility analysis for subsea oil & gas equipment.
+
+- Audited material suppliers for compliance with international standards (ASTM, ISO, NACE, API, ASME).
+:::

@@ -1,0 +1,8 @@
+*.pdf
+*.html
+*.tex
+*.typ
+*_files/
+
+!template/*.tex
+!template/*.typ
