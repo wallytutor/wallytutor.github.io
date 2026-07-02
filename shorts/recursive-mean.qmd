@@ -3,7 +3,6 @@ title: How Many More Points?
 author: Walter Dal'Maz Silva
 date: today
 execute:
-  python: .venv/Scripts/python.exe
   cache: true
   echo: false
 format:
@@ -31,6 +30,9 @@ jupyter:
     name: python3
 ---
 
+```{=typst}
+#show table: align.with(center)
+```
 
 In this note we will *empirically* investigate the convergence of a data acquisition stream simulated by a simple white noise. The goal is to create an intuition regarding the stabilization of the the streamed data to *know* when to stop an experiment. Here we start by importing the standard tools we will use in this project.
 
@@ -40,7 +42,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as st
 
-from typing import Generator, Tuple, Union
+from typing import Generator, Tuple
 ```
 
 ## The algorithm
@@ -179,17 +181,39 @@ Next we define the tolerance levels for the SEM (10% of actual standard deviatio
 
 ```{python}
 #| echo: true
-tol_sem = 0.10
+tol_sem = 0.05
 tol_var = 0.02
 
 confidence = 0.05
-e *= st.norm.ppf(1.0 - confidence / 2.0)
+e_err = e * st.norm.ppf(1.0 - confidence / 2.0)
 
-stability = (e[1:] < tol_sem) & (v[1:] < tol_var)
-stop_at = np.argmax(stability)
+w = stream_stats.window
+stability = (e_err[w:] < tol_sem) & (v[w:] < tol_var)
+stop_at = np.argmax(stability) + w
+
+m_stop = m[stop_at]
+s_stop = s[stop_at]
 ```
 
-A summary of results is illustrated below. Shaded regions cover the initial window where results are not available for those quantites. The vertical blue line indicates de acquisition stop based on the above criteria.
+The following table summarizes the estimated and the full population values:
+
+```{python}
+#| echo: false
+from IPython.display import Markdown, display
+
+table_text = f"""
+Stopping point at: {stop_at}
+
+|      | Population | Sample     |
+|------|------------|------------|
+| Mean | {m_eval:10.5f} | {m_stop:10.5f} |
+| Std  | {s_eval:10.5f} | {s_stop:10.5f} |
+"""
+
+display(Markdown(table_text))
+```
+
+A summary of the results is illustrated below. Shaded regions cover the initial window where results are not available for those quantites. The vertical blue line indicates the acquisition stop iteration based on the above criteria.
 
 ```{python}
 #| fig-cap: Analysis of convergence
@@ -218,7 +242,7 @@ ax = np.ravel(ax)
 
 ax[0].semilogx(m, c="k")
 ax[1].semilogx(s, c="k")
-ax[2].semilogx(e, c="k")
+ax[2].semilogx(e_err, c="k")
 
 ax[3].semilogx(dm, c="k")
 ax[4].semilogx(ds, c="k")
