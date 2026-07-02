@@ -1,0 +1,13 @@
+[project]
+name = "shorts"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=7.3.0",
+    "jupyter-cache>=1.0.1",
+    "jupyterlab>=4.6.1",
+    "jupytext>=1.19.4",
+    "matplotlib>=3.11.0",
+    "numpy>=2.5.0",
+    "scipy>=1.18.0",
+]

@@ -1,0 +1,8 @@
+**/.ipynb_checkpoints/
+**/.jupyter_cache/
+**/.quarto/
+**/.venv/
+**/*_files/
+**/*.quarto_ipynb
+**/*.ipynb
+**/*.pdf
