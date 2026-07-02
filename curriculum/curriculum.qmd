@@ -8,15 +8,15 @@ abstract: |
   Research Engineer with over a decade of industrial experience spanning Oil & Gas, metallic materials processing and coatings, and high-temperature processes applied to ceramic materials. Expertise covers scientific computing, software engineering, numerical simulations, materials science, and applied machine learning. Specialized in bridging the gap between materials, processing, and design through physical and data-driven modeling. Fluent in Portuguese, French, and English. Active mountaineer, climber, ultra trail runner, and mountain biker.
 
 filters:
-  - _assets/blocks.lua
+  - _assets/curriculum.lua
 
 format:
   typst:
-    template: _assets/styles.typ
+    template: _assets/curriculum.typ
     keep-typ: false
 
   html:
-    css: _assets/styles.css
+    css: _assets/curriculum.css
     theme: cosmo
     toc: false
 ---
