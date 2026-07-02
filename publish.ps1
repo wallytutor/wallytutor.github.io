@@ -14,7 +14,7 @@ if ($Render) {
     Remove-Item -Recurse -Force _site -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Path _site | Out-Null
 
-    # Build all .qmd files:
+    # Build all .qmd files (Quarto will gather the assets as needed):
     Get-ChildItem -Filter *.qmd -Recurse `
     | Where-Object { $_.FullName -notlike "*\.*" } | ForEach-Object {
         # XXX do not use the following, as it will fail for the root!
@@ -32,10 +32,16 @@ if ($Publish) {
     cd "$PSScriptRoot\_site"
     git config --global init.defaultBranch main
     git init
+
+    # Create .nojekyll file to prevent GitHub Pages from ignoring
+    # directories starting with underscore (like _assets)
+    New-Item -ItemType File -Path ".nojekyll" -Force | Out-Null
+
     git add -A
     git commit -m "Deploy independent docs manually"
     git remote add origin (git -C "$PSScriptRoot" remote get-url origin)
     git push origin HEAD:gh-pages --force
+
     cd $PSScriptRoot
     Remove-Item -Recurse -Force _site
 }
