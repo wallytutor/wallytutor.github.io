@@ -177,7 +177,7 @@ table = np.array(list(map(stream_stats, data)))
 m, s, e, v = table.T
 ```
 
-Next we define the tolerance levels for the SEM (10% of actual standard deviation) and the change in variance $\delta_{s^2}$ (2%). Assuming a double-tailed distribution, the typical confidence interval of $\beta = 0.05$ is used for scaling the SEM. Using the criteria we compute the stopping index for the present series.
+Next we define the tolerance levels for the SEM (5% of actual standard deviation) and the change in variance $\delta_{s^2}$ (2%). Assuming a double-tailed distribution, the typical confidence interval of $\beta = 0.05$ is used for scaling the SEM. Using the criteria we compute the stopping index for the present series.
 
 ```{python}
 #| echo: true
