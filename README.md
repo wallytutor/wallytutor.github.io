@@ -9,7 +9,11 @@ quarto render index.qmd
 2. Publishing to GitHub pages:
 
 ```bash
-quarto publish gh-pages --no-prompt --no-browser index.qmd
+# First render everything and inspect:
+./publish.ps1 -Render
+
+# Then publish to the right branch:
+./publish.ps1 -Publish
 ```
 
 3. Troubleshooting:
