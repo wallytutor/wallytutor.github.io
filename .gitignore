@@ -1,8 +1,12 @@
+_site/
+
 *.pdf
 *.html
 *.tex
 *.typ
 *_files/
 
-!template/*.tex
-!template/*.typ
+!**/_assets/*.tex
+!**/_assets/*.typ
+/.quarto/
+**/*.quarto_ipynb

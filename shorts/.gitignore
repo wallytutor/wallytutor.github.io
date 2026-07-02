@@ -6,3 +6,4 @@
 **/*.quarto_ipynb
 **/*.ipynb
 **/*.pdf
+/.quarto/

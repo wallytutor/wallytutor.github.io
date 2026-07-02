@@ -7,6 +7,8 @@ execute:
   cache: true
   echo: false
 format:
+  html:
+    theme: default
   typst:
     margin: {x: 2.5cm, top: 3.0cm, bottom: 2.0cm}
     logo:
