@@ -8,7 +8,12 @@ execute:
   echo: false
 format:
   typst:
-    logo: _assets/logo.svg
+    margin: {x: 2.5cm, top: 3.0cm, bottom: 2.0cm}
+    logo:
+      path: _assets/logo.svg
+      width: 5cm
+      location: right top
+      padding: 10mm
     fig-format: png
     fig-dpi: 300
 jupyter:
@@ -25,19 +30,20 @@ jupyter:
 ---
 
 
-In this note we will *empirically* investigate the convergence of a data acquisition stream simulated by a simple white noise. The goal is to create an intuition regarding the stabilization of the the streamed data to *know* when to pause an experiment. Here we start by importing the standard tools we will use in this project.
+In this note we will *empirically* investigate the convergence of a data acquisition stream simulated by a simple white noise. The goal is to create an intuition regarding the stabilization of the the streamed data to *know* when to stop an experiment. Here we start by importing the standard tools we will use in this project.
 
 ```{python}
 #| echo: true
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats as st
 
 from typing import Generator, Tuple, Union
 ```
 
 ## The algorithm
 
-An stable estimation of the mean $\mu_n$ of a streaming sample of data points $x_k$ can be done with help of [Welford's algorigthm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance). The updated mean $\mu_n$ after $n$ data points have been streamed (acquired) can be updated from the previous value $\mu_{n-1}$ and the new data point $x_n$ as: 
+An stable estimation of the mean $\mu_n$ of a streaming sample of data points $x_k$ can be done with help of [Welford's algorigthm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance). The updated mean $\mu_n$ after $n$ data points have been streamed (acquired) can be updated from the previous value $\mu_{n-1}$ and the new data point $x_n$ as:
 
 $$
 \begin{aligned}
@@ -51,7 +57,7 @@ The quantity $\Delta$ has been introduced above as it will also be used to updat
 
 $$
 M_{2,n} = M_{2,n-1} + \Delta \cdotp (x_n - \mu_n)
-$$.
+$$
 
 The sample standard deviation (using Bessel's correction $n-1$) is computed as
 
@@ -65,48 +71,89 @@ $$
 \sigma_n = \sqrt{\frac{M_{2,n}}{n}}
 $$
 
-{{< pagebreak >}}
+## Quantifying uncertainty
 
-The class `StreamingCalculator` provides an implementation of this algorithm.
+The uncertainty of the estimated mean is quantified by the SEM (standard error of the mean). It is given as
+
+$$
+\text{SEM}_n = \frac{s_n}{\sqrt{n}}
+$$
+
+The associated confidence interval is computed using the critical value $z(\beta)$ for the desired confidence level $\beta$. If a value is found to be below this tolerance for the $I_n$, then the estimate of the mean $\mu_n$ is considered to be stable.
+
+$$
+I_n = z(\beta) \cdot \text{SEM}_n \le \epsilon_{\text{mean}}
+$$
+
+Another useful metric is the stationarity of the variance (stability) over a moving horizon $k$.
+
+$$
+\delta_{s^2} = \left|\frac{s_n^2 - s_{n-k}^2}{s_n^2}\right|
+\le \epsilon_{\text{var}}
+$$
+
+The class `StreamingCalculator` provided in the appendix implements Welford's algorithm and evaluates these metrics for convergence analysis.
+
+<!-- ::: {#streaming-calculator} -->
 
 ```{python}
+#| label: streaming-calculator
 #| echo: true
+StreamingStatistics = Tuple[float, float, float, float]
+
 class StreamingCalculator:
     """ Welford generator for mean and sample standard deviation."""
-    
-    def __init__(self) -> None:
+
+    def __init__(self, window: int, epsilon: float = 1.0e-12) -> None:
+        self.window: int = window
+        self._epsilon: float = epsilon
+        self._history: list[float] = []
         self._generator = self._update()
         next(self._generator)
 
-    def _update(self) -> Generator[Tuple[float, float], float, None]:
+    def _feed_var_history(self, var: float) -> float:
+        """ Feed the running variance history. """
+        self._history.append(var)
+
+        if len(self._history) < self.window:
+            return 0
+
+        self._history.pop(0)
+        return abs((var - self._history[0])/ (var + self._epsilon))
+
+    def _update(self) -> Generator[StreamingStatistics, float, None]:
         """ The underlying generator handling the recursive Welford logic. """
-        n: int = 0
-        mean: float = 0.0
-        M2: float = 0.0
-        
-        val = yield (mean, 0.0)
-        
+        n, mean, M2 = 0, 0.0, 0.0
+        val = yield (mean, 0.0, 0.0, 0.0)
+
         while val is not None:
             n += 1
             delta = val - mean
             mean += delta / n
             M2 += delta * (val - mean)
 
-            std = (M2 / (n - 1)) ** 0.5 if n > 1 else 0.0
-            val = yield (mean, std)
+            var = (M2 / (n - 1)) if n > 1 else 0.0
+            std = var ** 0.5
+            sem = std / n**0.5
+
+            var_change = self._feed_var_history(var)
+            val = yield (mean, std, sem, var_change)
 
     def __call__(self, val: float) -> Tuple[float, float]:
         """ Pass a new value by calling the as a function object."""
         return self._generator.send(val)
 ```
 
+<!-- ::: -->
+
 ## Application
+
+Let's be straigh forward with the presentation. Below we defined a seeded RNG (random number generator) and sampled 100,000 data points from a normal distribution with mean 1 and standard deviation 1. It is important to see the RNG so that we get reproducible results.
 
 ```{python}
 #| echo: true
-m_true = 5.0
-s_true = 5.0
-r_true = np.log10(m_true / s_true)
+m_true = 1.0
+s_true = 1.0
 
 rng = np.random.default_rng(seed=43)
 data = rng.normal(loc=m_true, scale=s_true, size=100_000)
@@ -115,71 +162,94 @@ m_eval = np.mean(data)
 s_eval = np.std(data)
 ```
 
+Next, we use the `StreamingCalculator` to compute the streaming statistics and unpack the results. The window width is set to 20.
+
 ```{python}
 #| echo: true
-stream_stats = StreamingCalculator()
-
+stream_stats = StreamingCalculator(window=20)
 table = np.array(list(map(stream_stats, data)))
-m = table[:, 0]
-s = table[:, 1]
 
-epsilon = 1.0e-10
-r = np.log10(m / (s + epsilon))
+# mean, std, sem, dvar:
+m, s, e, v = table.T
 ```
+
+Next we define the tolerance levels for the SEM (10% of actual standard deviation) and the change in variance $\delta_{s^2}$ (2%). Assuming a double-tailed distribution, the typical confidence interval of $\beta = 0.05$ is used for scaling the SEM. Using the criteria we compute the stopping index for the present series.
+
+```{python}
+#| echo: true
+tol_sem = 0.10
+tol_var = 0.02
+
+confidence = 0.05
+e *= st.norm.ppf(1.0 - confidence / 2.0)
+
+stability = (e[1:] < tol_sem) & (v[1:] < tol_var)
+stop_at = np.argmax(stability)
+```
+
+A summary of results is illustrated below. Shaded regions cover the initial window where results are not available for those quantites. The vertical blue line indicates de acquisition stop based on the above criteria.
 
 ```{python}
 #| fig-cap: Analysis of convergence
 #| fig-align: center
 #| out-width: 80%
+n = len(v)
+w = stream_stats.window
+
+dm = np.zeros_like(m)
+ds = np.zeros_like(s)
+dm[w:] = np.abs(m[w:] - m[:(n-w)])
+ds[w:] = np.abs(s[w:] - s[:(n-w)])
 
 plt.close("all")
 plt.style.use("classic")
 
 fig, ax = plt.subplots(
-    nrows     = 3, 
-    ncols     = 2, 
-    figsize   = (8, 8), 
+    nrows     = 2,
+    ncols     = 3,
+    figsize   = (9, 6),
     facecolor = "white",
     sharex    = True,
-    height_ratios = [0.8, 0.9, 0.8]
+    width_ratios = [0.3, 0.3, 0.4]
 )
-ax = np.ravel(ax.T)
+ax = np.ravel(ax)
 
 ax[0].semilogx(m, c="k")
 ax[1].semilogx(s, c="k")
-ax[2].semilogx(r, c="k")
+ax[2].semilogx(e, c="k")
 
-ax[3].semilogx(np.log10(np.abs(np.diff(m))), c="k")
-ax[4].semilogx(np.log10(np.abs(np.diff(s))), c="k")
-ax[5].semilogx(np.log10(np.abs(np.diff(r))), c="k")
+ax[3].semilogx(dm, c="k")
+ax[4].semilogx(ds, c="k")
+ax[5].semilogx(v, c="k")
 
 ax[0].axhline(m_true, color="r", linestyle="--", linewidth=2)
 ax[1].axhline(s_true, color="r", linestyle="--", linewidth=2)
-ax[2].axhline(r_true, color="r", linestyle="--", linewidth=2)
 
-ax[3].axhline(0.0, color="r", linestyle="--", linewidth=2)
-ax[4].axhline(0.0, color="r", linestyle="--", linewidth=2)
-ax[5].axhline(0.0, color="r", linestyle="--", linewidth=2)
+ax[2].axhline(tol_sem, color="r", linestyle="-")
+ax[5].hlines(tol_var, xmin=w, xmax=n, color="r", linestyle="-")
 
-ax[0].grid(linestyle=":", linewidth=0.5)
-ax[1].grid(linestyle=":", linewidth=0.5)
-ax[2].grid(linestyle=":", linewidth=0.5)
-ax[3].grid(linestyle=":", linewidth=0.5)
-ax[4].grid(linestyle=":", linewidth=0.5)
-ax[5].grid(linestyle=":", linewidth=0.5)
+ax[3].axvspan(0, w, color="blue", alpha=0.3)
+ax[4].axvspan(0, w, color="blue", alpha=0.3)
+ax[5].axvspan(0, w, color="blue", alpha=0.3)
 
-ax[0].set_ylim(4.6, 5.4)
-ax[1].set_ylim(4.6, 5.4)
-ax[2].set_ylim(-0.1, 0.1)
-# ax[3].set_ylim(-0.01, 0.1)
-# ax[4].set_ylim(-0.01, 0.1)
-# ax[5].set_ylim(-0.01, 0.1)
+for ak in ax:
+    ak.grid(linestyle=":", linewidth=0.5)
+    ak.axvline(stop_at, color="blue", linewidth=2)
 
-fig.suptitle((f"Population $\\mathcal{{N}}({m_true:.0f}; {s_true:.0f})$ | "
-              f"Sample $\\mathcal{{N}}({m_eval:.0f}; {s_eval:.0f})$ "), 
-             fontsize = "x-large", fontweight = "normal")
+ax[0].set_ylabel("$\\mu_{n}$")
+ax[1].set_ylabel("$\\sigma_{n}$")
+ax[2].set_ylabel("$I_{n}$")
+ax[3].set_ylabel("$\\mu_{n} - \\mu_{(n-w)}$")
+ax[4].set_ylabel("$\\sigma_{n} - \\sigma_{(n-w)}$")
+ax[5].set_ylabel("$\\delta_{s^2}$")
+
+ax[0].set_xlim(1, n)
 
 fig.tight_layout()
 ```
 
+{{< pagebreak >}}
 
+## Appendix
+
+{{< contents streaming-calculator >}}
