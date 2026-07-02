@@ -1,10 +1,23 @@
 ---
-title: "WallyTutor | Walter Dal'Maz Silva"
-subtitle: "Professional Portfolio & Technical Research"
-description: "Personal portfolio, curriculum vitae, and research notes of Walter Dal'Maz Silva, Ph.D. specializing in physical and data-driven modeling."
-keywords: ["Walter Dal'Maz Silva", "WallyTutor", "Materials Science", "Data Science", "Physical Modeling", "Scientific Computing"]
+title: WallyTutor | Walter Dal'Maz Silva
+subtitle: Professional Portfolio & Technical Research
+
+description: |
+    Personal portfolio, curriculum vitae, and research notes of
+    Walter Dal'Maz Silva, Ph.D. specializing in physical and
+    data-driven modeling.
+
+keywords:
+  - "Walter Dal'Maz Silva"
+  - WallyTutor
+  - Materials Science
+  - Data Science
+  - Physical Modeling
+  - Scientific Computing
+
 format:
   html:
+    logo: _assets/logo.svg
     css: _assets/index.css
     theme: cosmo
     toc: false
@@ -13,98 +26,10 @@ format:
     max-width: 960px
 ---
 
-```{=html}
-<div class="hero-section">
-  <div class="logo-container">
-    <!-- Inline SVG Logo with contrast adjustments for dark gradient background -->
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 120" width="380" height="120" class="brand-logo">
-      <defs>
-        <linearGradient id="circle-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#012169" />
-          <stop offset="100%" stop-color="#0b3b8c" />
-        </linearGradient>
-        <linearGradient id="w-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#ffffff" />
-          <stop offset="100%" stop-color="#e2e8f0" />
-        </linearGradient>
-        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#000000" flood-opacity="0.2"/>
-        </filter>
-      </defs>
-      <circle cx="60" cy="60" r="42" fill="url(#circle-grad)" filter="url(#shadow)" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.2" />
-      <path d="M 42 45 L 51 75 L 60 56 L 69 75 L 78 45" fill="none" stroke="url(#w-grad)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" />
-      <text x="125" y="74" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="38" fill="#ffffff">
-        <tspan font-weight="700">Wally</tspan><tspan font-weight="300" fill="#bae6fd" dx="2">Tutor</tspan>
-      </text>
-    </svg>
-  </div>
-  <h1 class="hero-title">Walter Dal'Maz Silva, Ph.D.</h1>
-  <p class="hero-subtitle">Research Engineer in Data-Driven & Physical Modeling</p>
-  <div class="hero-bio">
-    Specializing in physical modeling, scientific computing, numerical simulations, materials science, and applied machine learning. Bridging the gap between physics, metallurgy, and modern data science.
-  </div>
-  <div class="social-links">
-    <a href="https://github.com/wallytutor" target="_blank" class="social-btn" id="github-link">
-      <svg class="icon" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
-      GitHub
-    </a>
-    <a href="mailto:walter.dalmazsilva@gmail.com" class="social-btn" id="email-link">
-      <svg class="icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-      Email
-    </a>
-  </div>
-</div>
+## Contents
 
-<div class="content-section">
-  <h2 class="section-title">Published Documents</h2>
-  <p class="section-desc">Explore the compiled resources, research notes, and curriculum materials:</p>
+- [Curriculum](curriculum/curriculum.html)
 
-  <div class="cards-grid">
-    <!-- Card 1: Curriculum Vitae -->
-    <div class="portfolio-card" id="card-cv">
-      <div class="card-badge">Biography & Career</div>
-      <h3 class="card-title">Curriculum Vitae</h3>
-      <p class="card-text">
-        Detailed professional background of Walter Dal'Maz Silva. Covers PhD research in Materials Science, industrial experience in metallurgy and combustion, key publications, and core technical competencies.
-      </p>
-      <div class="card-meta">
-        <div class="meta-item"><span class="meta-label">Format:</span> HTML Webpage, PDF Document</div>
-        <div class="meta-item"><span class="meta-label">Language:</span> English</div>
-      </div>
-      <div class="card-actions">
-        <a href="curriculum/curriculum.html" class="action-btn btn-primary" id="cv-html-btn">
-          View Webpage
-        </a>
-        <a href="curriculum/curriculum.pdf" class="action-btn btn-secondary" id="cv-pdf-btn" download>
-          Download PDF
-        </a>
-      </div>
-    </div>
+### Shorts
 
-    <!-- Card 2: Research Note -->
-    <div class="portfolio-card" id="card-recursive-mean">
-      <div class="card-badge">Technical Note</div>
-      <h3 class="card-title">How Many More Points?</h3>
-      <p class="card-text">
-        An empirical investigation into data stream convergence using Welford's algorithm for recursive mean and variance estimation. Analyzes stability using confidence intervals and statistical error metrics.
-      </p>
-      <div class="card-meta">
-        <div class="meta-item"><span class="meta-label">Format:</span> HTML Webpage, PDF Document</div>
-        <div class="meta-item"><span class="meta-label">Topic:</span> Numerical Statistics</div>
-      </div>
-      <div class="card-actions">
-        <a href="shorts/recursive-mean.html" class="action-btn btn-primary" id="rm-html-btn">
-          Read Article
-        </a>
-        <a href="shorts/recursive-mean.pdf" class="action-btn btn-secondary" id="rm-pdf-btn" download>
-          Download PDF
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="site-footer">
-  &copy; 2026 Walter Dal'Maz Silva. Built with Quarto.
-</div>
-```
+- [How Many More Points?](shorts/recursive-mean.html)

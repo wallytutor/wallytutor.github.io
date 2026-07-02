@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 120" width="380" height="120">
+  <defs>
+    <!-- Gradient for the circle background -->
+    <linearGradient id="circle-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#012169" />
+      <stop offset="100%" stop-color="#0b3b8c" />
+    </linearGradient>
+
+    <!-- Gradient for the 'W' path to give it a soft sheen -->
+    <linearGradient id="w-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+
+    <!-- Subtle drop shadow to make the emblem elements pop -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#000000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Circular emblem -->
+  <circle
+    cx="60"
+    cy="60"
+    r="42"
+    fill="url(#circle-grad)"
+    filter="url(#shadow)"
+    stroke="#ffffff"
+    stroke-width="1.5"
+    stroke-opacity="0.2" />
+
+  <!-- Stylized "W" inside the circle -->
+  <path
+    d="M 42 45 L 51 75 L 60 56 L 69 75 L 78 45"
+    fill="none"
+    stroke="url(#w-grad)"
+    stroke-width="7.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#shadow)" />
+
+  <!-- Brand Typography -->
+  <text
+    x="125"
+    y="74"
+    font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+    font-size="38"
+    fill="#012169">
+    <tspan font-weight="700">Wally</tspan><tspan font-weight="300" fill="#0284c7" dx="2">Tutor</tspan>
+  </text>
+</svg>

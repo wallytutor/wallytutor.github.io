@@ -3,11 +3,15 @@ param (
     [switch]$Publish
 )
 
+# Make sure the right Python is used:
+$env:QUARTO_PYTHON = "$PSScriptRoot\.venv\Scripts\python.exe"
+
 if ($Render) {
     # Make sure that all previous files are cleaned:
     Remove-Item -Recurse -Force _site -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Path _site | Out-Null
 
+    # Build all .qmd files:
     Get-ChildItem -Filter *.qmd -Recurse `
     | Where-Object { $_.FullName -notlike "*\.*" } | ForEach-Object {
         $relativeDir = $_.DirectoryName.Substring($PSScriptRoot.Length).TrimStart('\')
@@ -17,6 +21,7 @@ if ($Render) {
         quarto render $_.FullName --output-dir "$targetDir"
     }
 
+    # Ensure assets are available in the target directory:
     Copy-Item -Recurse -Force "_assets" "$PSScriptRoot\_site"
 }
 
@@ -29,6 +34,5 @@ if ($Publish) {
     git remote add origin (git -C "$PSScriptRoot" remote get-url origin)
     git push origin HEAD:gh-pages --force
     cd $PSScriptRoot
+    Remove-Item -Recurse -Force _site
 }
-
-Remove-Item -Recurse -Force _site
