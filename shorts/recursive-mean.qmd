@@ -152,7 +152,7 @@ class StreamingCalculator:
 
 ## Application
 
-Let's be straigh forward with the presentation. Below we defined a seeded RNG (random number generator) and sampled 100,000 data points from a normal distribution with mean 1 and standard deviation 1. It is important to see the RNG so that we get reproducible results.
+Let's be straigh forward with the presentation. Below we defined a seeded RNG (random number generator) and sampled 100,000 data points from a normal distribution with mean 1 and standard deviation 1. It is important to seed the RNG so that we get reproducible results.
 
 ```{python}
 #| echo: true
