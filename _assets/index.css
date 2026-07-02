@@ -9,7 +9,7 @@
   --secondary: #0284c7;
   --accent: #f0f9ff;
   --bg-gradient: linear-gradient(135deg, #012169 0%, #0b3b8c 100%);
-  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: #ffffff;
   --card-shadow: 0 10px 30px -10px rgba(1, 33, 105, 0.08);
   --card-hover-shadow: 0 20px 40px -10px rgba(1, 33, 105, 0.16);
   --card-border: 1px solid rgba(226, 232, 240, 0.8);
@@ -25,6 +25,7 @@ body {
   background-color: #fafbfc;
   margin: 0;
   padding: 0;
+  padding-top: 4.5rem; /* space for fixed top bar */
   line-height: 1.6;
 }
 
@@ -35,24 +36,54 @@ body {
   padding: 2rem 1.5rem 4rem 1.5rem;
 }
 
-.quarto-title-block {
-  display: none !important; /* Hide default Quarto title since we use a custom hero header */
+/* Fixed top bar with logo */
+.logo-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  padding: 0.8rem 0;
+  z-index: 1000;
 }
 
-/* Hero Header Section */
-.hero-section {
+.logo-header p {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.brand-logo {
+  height: 42px; /* Navbar height */
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+  transition: var(--transition);
+}
+
+.brand-logo:hover {
+  transform: scale(1.03);
+}
+
+/* Style the default Quarto title block as a premium hero banner */
+#title-block-header.quarto-title-block {
   text-align: center;
-  padding: 4rem 2rem 3rem 2rem;
+  padding: 4rem 2rem;
   background: var(--bg-gradient);
   color: #ffffff;
   border-radius: 24px;
-  margin-bottom: 3rem;
+  margin-top: 0;
+  margin-bottom: 3.5rem;
   box-shadow: 0 20px 40px -15px rgba(1, 33, 105, 0.25);
   position: relative;
   overflow: hidden;
+  border: none;
 }
 
-.hero-section::before {
+#title-block-header.quarto-title-block::before {
   content: '';
   position: absolute;
   top: 0;
@@ -64,46 +95,24 @@ body {
   z-index: 1;
 }
 
-.hero-section > * {
+#title-block-header.quarto-title-block > * {
   position: relative;
   z-index: 2;
 }
 
-.logo-container {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 1rem;
-  border-radius: 20px;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: var(--transition);
-}
-
-.logo-container:hover {
-  transform: scale(1.05);
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.brand-logo {
-  height: 80px;
-  width: auto;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-}
-
-.hero-title {
+#title-block-header .title {
   font-family: var(--font-title);
   font-size: 2.8rem;
   font-weight: 800;
+  color: #ffffff !important;
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.03em;
   line-height: 1.2;
 }
 
-.hero-subtitle {
+#title-block-header .subtitle {
   font-family: var(--font-title);
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 400;
   color: #bae6fd;
   margin: 0 auto 1.5rem auto;
@@ -111,92 +120,55 @@ body {
   line-height: 1.3;
 }
 
-.hero-bio {
+#title-block-header .description {
   font-size: 1.05rem;
   max-width: 650px;
-  margin: 0 auto 2rem auto;
+  margin: 0 auto;
   color: #e2e8f0;
   font-weight: 300;
+  line-height: 1.6;
 }
 
-/* Social Buttons */
-.social-links {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.social-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff !important;
-  text-decoration: none !important;
-  padding: 0.6rem 1.2rem;
-  border-radius: 12px;
-  font-weight: 500;
-  font-size: 0.95rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  transition: var(--transition);
-}
-
-.social-btn:hover {
-  background: #ffffff;
-  color: var(--primary) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-}
-
-.social-btn .icon {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-}
-
-/* Section Title */
-.content-section {
-  padding: 0 1rem;
-}
-
-.section-title {
+/* Section Headings */
+h2 {
   font-family: var(--font-title);
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--primary);
+  margin-top: 3rem;
   margin-bottom: 0.5rem;
   letter-spacing: -0.01em;
+  border-bottom: none;
 }
 
-.section-desc {
+h2 + p {
   color: var(--text-secondary);
   font-size: 1.05rem;
   margin-bottom: 2rem;
 }
 
-/* Cards Grid */
-.cards-grid {
+/* Portfolio Cards Grid Layout */
+.portfolio-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 3rem;
 }
 
 @media (min-width: 768px) {
-  .cards-grid {
+  .portfolio-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-/* Portfolio Card styling */
+/* Card item styling */
 .portfolio-card {
   background: var(--card-bg);
   border: var(--card-border);
   box-shadow: var(--card-shadow);
   border-radius: 20px;
-  padding: 2rem;
+  padding: 2.2rem;
   display: flex;
   flex-direction: column;
   transition: var(--transition);
@@ -209,66 +181,45 @@ body {
   border-color: rgba(2, 132, 199, 0.3);
 }
 
-.card-badge {
-  display: inline-block;
-  align-self: flex-start;
-  background: var(--accent);
-  color: var(--secondary);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.3rem 0.8rem;
-  border-radius: 8px;
-  margin-bottom: 1.25rem;
-}
-
-.card-title {
+.portfolio-card h3 {
   font-family: var(--font-title);
   font-size: 1.45rem;
   font-weight: 700;
   color: var(--primary);
-  margin: 0 0 1rem 0;
+  margin-top: 0;
+  margin-bottom: 1rem;
   line-height: 1.2;
+  border: none;
+  padding: 0;
 }
 
-.card-text {
+.portfolio-card p {
   color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.6;
-  margin: 0 0 1.5rem 0;
+  margin-top: 0;
+  margin-bottom: 1.8rem;
   flex-grow: 1;
 }
 
-.card-meta {
-  border-top: 1px solid rgba(226, 232, 240, 0.6);
-  padding-top: 1rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-}
-
-.meta-item {
-  color: var(--text-secondary);
-}
-
-.meta-label {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* Card Buttons / Actions */
-.card-actions {
+/* Turn lists inside cards into action buttons */
+.portfolio-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.action-btn {
+.portfolio-card li {
+  margin: 0;
   flex: 1;
   min-width: 120px;
+}
+
+.portfolio-card .action-btn {
+  display: block;
   text-align: center;
   text-decoration: none !important;
   padding: 0.7rem 1rem;
@@ -278,30 +229,68 @@ body {
   transition: var(--transition);
 }
 
-.btn-primary {
+.portfolio-card .btn-primary {
   background: var(--primary);
   color: #ffffff !important;
   box-shadow: 0 4px 12px rgba(1, 33, 105, 0.15);
 }
 
-.btn-primary:hover {
+.portfolio-card .btn-primary:hover {
   background: var(--primary-light);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(1, 33, 105, 0.25);
 }
 
-.btn-secondary {
+.portfolio-card .btn-secondary {
   background: #f1f5f9;
   color: #334155 !important;
   border: 1px solid #e2e8f0;
 }
 
-.btn-secondary:hover {
+.portfolio-card .btn-secondary:hover {
   background: #e2e8f0;
   transform: translateY(-1px);
 }
 
-/* Custom Footer */
+/* Social buttons list formatting */
+.social-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 3rem 0;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.social-links li {
+  margin: 0;
+}
+
+.social-links .social-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  color: var(--primary) !important;
+  text-decoration: none !important;
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: var(--transition);
+}
+
+.social-links .social-btn:hover {
+  background: var(--primary);
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(1, 33, 105, 0.15);
+  border-color: var(--primary);
+}
+
+/* Custom Footer - generated by Markdown or Quarto post-render if needed, but we style it if added */
 .site-footer {
   margin-top: 5rem;
   border-top: 1px solid #e2e8f0;

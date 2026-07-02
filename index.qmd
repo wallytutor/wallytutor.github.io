@@ -1,23 +1,17 @@
 ---
-title: WallyTutor | Walter Dal'Maz Silva
+title: Walter Dal'Maz Silva
 subtitle: Professional Portfolio & Technical Research
-
 description: |
     Personal portfolio, curriculum vitae, and research notes of
     Walter Dal'Maz Silva, Ph.D. specializing in physical and
     data-driven modeling.
-
 keywords:
-  - "Walter Dal'Maz Silva"
-  - WallyTutor
   - Materials Science
   - Data Science
   - Physical Modeling
   - Scientific Computing
-
 format:
   html:
-    logo: _assets/logo.svg
     css: _assets/index.css
     theme: cosmo
     toc: false
@@ -26,10 +20,45 @@ format:
     max-width: 960px
 ---
 
-## Contents
+::: {.logo-header}
+![](_assets/logo.svg){.brand-logo}
+:::
 
-- [Curriculum](curriculum/curriculum.html)
+## Published Resources
 
-### Shorts
+Explore the compiled curriculum, articles, and research materials:
 
-- [How Many More Points?](shorts/recursive-mean.html)
+::: {.portfolio-grid}
+
+::: {.portfolio-card}
+### Curriculum Vitae
+
+Detailed professional background covering PhD research in Materials Science, industrial experience in metallurgy and combustion, key publications, and core technical competencies.
+
+- [View Webpage](curriculum/curriculum.html){.action-btn .btn-primary}
+- [Download PDF](curriculum/curriculum.pdf){.action-btn .btn-secondary}
+:::
+
+::: {.portfolio-card}
+### How Many More Points?
+
+An empirical investigation into data stream convergence using Welford's algorithm for recursive mean and variance estimation. Analyzes stability using confidence intervals and statistical error metrics.
+
+- [Read Article](shorts/recursive-mean.html){.action-btn .btn-primary}
+- [Download PDF](shorts/recursive-mean.pdf){.action-btn .btn-secondary}
+:::
+
+:::
+
+## Contact & Links
+
+You can get in touch or explore my code repositories:
+
+::: {.social-links}
+- [Explore GitHub](https://github.com/wallytutor){.social-btn .github-btn}
+- [Send Email](mailto:walter.dalmazsilva@gmail.com){.social-btn .email-btn}
+:::
+
+::: {.site-footer}
+&copy; 2026 Walter Dal'Maz Silva. Built with Quarto.
+:::
