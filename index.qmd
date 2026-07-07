@@ -40,6 +40,15 @@ Detailed professional background covering PhD research in Materials Science, ind
 :::
 
 ::: {.portfolio-card}
+### A Chemical Plant MPC
+
+Development of a nonlinear MPC for a continuous stirred-tank reactor (CSTR) for educational purposes using algorithmic differentiation through [CasADi](https://web.casadi.org/).
+
+- [Read Article](shorts/chemical-plant-mpc.html){.action-btn .btn-primary}
+- [Download PDF](shorts/chemical-plant-mpc.pdf){.action-btn .btn-secondary}
+:::
+
+::: {.portfolio-card}
 ### How Many More Points?
 
 An empirical investigation into data stream convergence using Welford's algorithm for recursive mean and variance estimation. Analyzes stability using confidence intervals and statistical error metrics.

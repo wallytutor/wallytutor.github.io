@@ -1,0 +1,35 @@
+---
+title: A Chemical Plant MPC
+author: Walter Dal'Maz Silva
+date: today
+execute:
+  cache: true
+  echo: false
+format:
+  html:
+    theme: default
+  typst:
+    margin: {x: 2.5cm, top: 3.0cm, bottom: 2.0cm}
+    logo:
+      path: _assets/logo.svg
+      width: 5cm
+      location: right top
+      padding: 10mm
+    fig-format: png
+    fig-dpi: 300
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.19.4
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+```{=typst}
+#show table: align.with(center)
+```
