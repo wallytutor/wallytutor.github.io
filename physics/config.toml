@@ -1,0 +1,9 @@
+# config.toml
+
+# Directory for generated Calepin runtime and website assets.
+# Default: ".calepin". Use "_calepin" for Netlify or GitHub Pages.
+asset-dir = ".calepin"
+
+[executables]
+typst = "typst"
+python = ".venv/bin/python"
