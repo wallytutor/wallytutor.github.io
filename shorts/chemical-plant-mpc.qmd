@@ -33,3 +33,448 @@ jupyter:
 ```{=typst}
 #show table: align.with(center)
 ```
+
+:::{.markdown}
+In this short article we will introduce the basics of model predictive controls (MPC) by implementing a continuous stirred tank reactor (CSTR) conversion plant model. This will simulate the output concentration of a chemical species whose set-point changes over time, *i.e.* to follow customer orders which require different product concentrations. This is an interesting problem because reactor dilution takes time and a simple proportional-integral controller (PI) would not be enough to track the concentration with minimal out-of-specification periods.
+
+The problem will be implemented with help of [CasADi](https://web.casadi.org/) package and its Python interface so that we can take advantage of its features such as automatic differentiation and interface to robust numerical solvers. The development will be broken down into three parts. First we will implement the model from scratch and test its functioning. Then it will be refactored into a more modular code, before being organized as library code to be reused. The goal is to provide an intuitive introduction to the topic which can serve as a basis for further learning.
+:::
+
+## Problem statement
+
+The problem we will model here consists of an imaginary chemical plant where reagent $A$ is reacted with carrier fluid $B$ in a single continuous stirred tank reactor (CSTR) to produce $C$, whose concentration is the target. The transformation happens at constant volume, represented by $n_t$ moles. The chemical process is illustrated as the irreversible reaction happening at a known rate $k_1$:
+
+$$
+A + B \rightarrow C + B
+$$
+
+In this plant, we are capable of controling the molar flow rates of both $A$ and $B$, $\dot{n}_A$ and $\dot{n}_B$, which affect the production rate of $C$ leaving the reactor at a molar fraction $x_C$. For smooth functioning of the system, the total flow rate is required to remain constant at $\dot{n}_t$ so that $\dot{n}_B = \dot{n}_t - \dot{n}_A$, *i.e.* a compensation valve is the action we control. Thus, we have a single degree of freedom in the actions we can take to pilot this simple system.
+
+Under these assumptions, the effecting the balance for a species $i$ is given below. The source term $\dot{n}_{gen,B}$ is zero as $B$ is a carrier fluid, and for the other species it is computed as a first order homogeneous kinetic rate law (thus independent on the carrier concentration).
+
+$$
+\begin{aligned}
+n_t\dot{x}_i &= \dot{n}_i - \dot{n}_t x_i + \dot{n}_{gen,i}
+\\[12pt]
+\dot{n}_{gen,A} &= -\dot{n}_{gen,C} = -k_1 x_A
+\\[12pt]
+\dot{n}_{gen,B} &= 0
+\end{aligned}
+$$
+
+## Our toolbox
+
+Working with CasADi requires a minimal introduction to its data types. The package provides a symbolic class `SX` to enable *algorithmic differentiation* throught the construction of computational graphs. It can be used to build expressions which can be later evaluated through the use of `Function` objects. Numerical data returned from solvers is found in dense matrix format `DM`. Other functions imported from `casadi` are related to problem solution and vector concatenation `vertcat` and are discussed in their context of usage.
+
+```{python}
+#| echo: true
+from casadi import SX, DM, Function
+from casadi import nlpsol, vertcat
+import numpy as np
+import matplotlib.pyplot as plt
+```
+
+## Preliminary implementation
+
+Before entering the details of the symbolic model implementation, we start by defining the parameters that are held constant in our problem. That includes the reaction rate $k_1$, the size of reactor $n_t$ and the total flow rate of $\dot{n}_t$.
+
+```{python}
+#| echo: true
+# Reaction rate constant [mol/s]:
+k_1 = 10.0
+
+# Reactor amount of matter [moles]:
+n_t = 500.0
+
+# Reactor total flow rate [mol/s]:
+ndot_t = 3.0
+```
+
+### Symbolic model definition
+
+The model formulated in the previous section establishes differential equations for the molar fractions of the different species taking part in our fictional system. Although `SX` symbolics allows for declaring them in vector form, here we have chosen to declare them separately to keep the model code close to the mathematical formulation. The advantage of using `SX` symbolics is that is allows for automatic differentiation of the expressions, which is helpful for the computation of jacobian and hessian matrices required by the numerical solvers.
+
+```{python}
+#| echo: true
+x_A = SX.sym("x_A")
+x_B = SX.sym("x_B")
+x_C = SX.sym("x_C")
+```
+
+For the inlet flow rates, we declare single symbolic variable for $\dot{n}_A$ and evaluate the value of $\dot{n}_B$ as a constraint built-in the model. Notice here that we can use numerical `ndot_t` and symbolic `ndot_A` in the same expression, illustrating the interoperability of CasADi's symbolics and plain Python numbers.
+
+```{python}
+#| echo: true
+ndot_A = SX.sym("ndot_A")
+ndot_B = ndot_t - ndot_A
+ndot_C = 0.0
+```
+
+Source terms are provided below following the mathematical formulation:
+
+```{python}
+#| echo: true
+rate = k_1 * x_A
+
+ndot_gen_A = -rate
+ndot_gen_B = 0.0
+ndot_gen_C = +rate
+```
+
+These source terms complete the set of elements required to construct the differential equations describing the time-evolution of the system. The outlet flow rate is given by the product of total flow rate and molar fractions: $n_t x_i$, as per the definition of an ideal CSTR.
+
+```{python}
+#| echo: true
+xdot_A = (ndot_A - ndot_t * x_A + ndot_gen_A) / n_t
+xdot_B = (ndot_B - ndot_t * x_B + ndot_gen_B) / n_t
+xdot_C = (ndot_C - ndot_t * x_C + ndot_gen_C) / n_t
+```
+
+When using CasADi, one often refers to the unknowns of the problem as `x`, and parameters as `p`. Please notice that parameters can be symbolic (as `ndot_A`) and are provided only at solution time. Here we concatenate the array of unknowns using `vertcat`. There is no need to convert `p` into an array, we just give an alias `p` to `ndot_A` so that we can use typical CasADi formalism.
+
+```{python}
+#| echo: true
+x = vertcat(x_A, x_B, x_C)
+p = ndot_A
+```
+
+:::{.callout-note title="More about parameters"}
+Numerical parameters (as `ndot_t`) are not modifiable as they take part in the construction of the computational graph, so one must decide whether to keep them as Python constants or use a symbolic representation before model definition. This is important because leaving everything modifiable at runtime can create cumbersome interfaces that require too many parameters to be used, so careful design is recommended.
+:::
+
+### Problem right-hand side
+
+The assembly of the integrator consists of defining functions to evaluate the right-hand side (RHS) of the ODE system, and step over a given time window. By integrator, here we mean the full routine that will evaluate the solution output over the time-interval of the problem, not just the time-stepping algorithm, as often referred to in  ODE's literature.
+
+Using `Function` we wrap the previous expressions into something that can be evaluated in terms of `x` and `p`. Each function is provided a name, a list of inputs and a list of outputs. These could also be named, but we skip that here for simplicity. Also, we do not make use of any other optional arguments and you can check their usage in the [documentation](https://web.casadi.org/docs/).
+
+```{python}
+#| echo: true
+F_xdot_A = Function("F_xdot_A", [x, p], [xdot_A])
+F_xdot_B = Function("F_xdot_B", [x, p], [xdot_B])
+F_xdot_C = Function("F_xdot_C", [x, p], [xdot_C])
+```
+
+:::{.callout-note title="Inspecting a function"}
+
+It is interesting to check the string representation of a `Function`. Here we see that it receives a first input `i0` which is an array of 3 elements (the shape of `x`) and a second number `i1` (representing `p`) for the returning a single value `o0` (the derivatives). As stated before, you can name these I/O using the more complete interface of `Function`.
+
+```{python}
+#| echo: true
+F_xdot_A
+```
+
+We can check the proper functioning of these functions as *normal* Python functions, which can be evaluated numerically. Return values are of type `DM`, CasADi's way of representing dense matrices (here an order zero matrix, a single number).
+
+```{python}
+#| echo: true
+F_xdot_A([0.5, 0.5, 0], 10),\
+F_xdot_B([0.5, 0.5, 0], 10),\
+F_xdot_C([0.5, 0.5, 0], 10)
+```
+
+:::
+
+### Prediction horizon
+
+The first step for converting our simple ODE problem into an MPC is the definition of its *prediction horizon* $N_p$ and associated output step $\tau$. Their values depend on the time-scales of the process at hand the hability to change its inputs (control) paramters. This makes MPC an intrinsically multidisciplinary subject, requiring the process and controls specialist to work together.
+
+For a CSTR, the characteristic residence time given by $\tau_{c} = n_t / \dot{n}_t$. This value must be at least one order of magnitude greated than the integration step $\tau$, and reasonably smaller than the time horizon $N_p \tau$. Given the defined reactor size and total flow rate, the characteristic time of the system $\tau_c$ is of the order of $n_t/\dot{n}_t = 500\:\mathrm{mol} / 3\:\mathrm{mol\cdotp{}s^{-1}} \approx 170\:\mathrm{s}$. To ensure that the time horizon is long enough so that the optimization routine foresees the dynamics of the system to apply corrections in time, and the time steps are small compared to the characteristic time, we chose to take into account the next 2000 s of the dynamics by integrating 200 steps of 10 s.
+
+```{python}
+#| echo: true
+# Prediction horizon:
+Np = 200
+
+# Time-step of outputs:
+tau = 10.0
+```
+
+:::{.callout-important}
+Please, notice that the horizon size $N_p$ alone is meaningless without the definition of the time-step $\tau$ between consective corrective actions. This again must take into consideration the delays system response and the valve itself in this specific case. Also notice that the time-step $\tau$ may be the same used for integration of the problem if its stiffness allows for. For stiff problems we generally use smaller *inner time-steps* to reach output interval $\tau$, while keeping the control action constant in between. This is often the case in combustion processes or complex gas pressure controls.
+:::
+
+### Cost function composition
+
+Next comes the definition of the cost function, which is generally composed of a local quadratic term penalizing deviations of controlled variables from their target values (set-points), another penalizing large control actions, and a terminal penalty.
+
+- The scale of the problem is usually selected to be one of deviation of main controlled variable so the mutiplier of quadratic term $Q$ is set to unity (or identity matrix in more complex multidimensional formulations).
+
+- For the command change penality, scaling $R$ has to be chosen so that is remains in a good order of magnitude compared to target variable cost and still perform its function.
+
+- The last parameter $S$ is the terminal penalization, generally set to a high value so that we enforce the last point in prediction horizon to match the set-point.
+
+```{python}
+#| echo: true
+# Set-point penality scale:
+Q = 1.0
+
+# Command change penality scale:
+R = 0.1
+
+# Terminal penalization:
+S = 100.0
+```
+
+### Additional constraints
+
+There might be additional constraints to be added to the problem. These may arise from quality requirements or technical constraints of the plant itself. For instance, let's assume our compensation valve does not allow the fraction of $A$ in the total flow to be above 90% of total feed rate. This constraint will be imposed to each action of the system over the process window.
+
+```{python}
+#| echo: true
+ndot_A_max = 0.9 * ndot_t
+```
+
+### Assembly of the integrator
+
+First we declare the cost function (which is zero initially) and an array for the constraints. For each solution variable we also need a lower and upper bound. To close the system, we store the command $v$ used during each output interval. These variables will be fed by the integrator in what follows.
+
+```{python}
+#| echo: true
+# Cost function:
+J = 0.0
+
+# Array of constraints:
+g = []
+
+# Solution lower/upper boundaries:
+lbx = []
+ubx = []
+
+# Control variable over prediction horizon:
+v_ndot_A = []
+```
+
+:::{.callout-caution}
+In the above, the lower and upper boundaries, `lbx` and `ubx` refer to the *decision variables* of our optimization problem, here the controller command for the flow rate of $A$, not the states of the differential problem. It can be set from zero up to the maximum amount it can be set, here 90% of total flow rate. Note that constant numeric values could have been provided here, but for generality we will use a list here and feed it along with the integration so that you can see how one could implement a possibly *varying* control boundaries.
+:::
+
+Another requirement is to have the production planning with the target concentration (set-point) over the prediction horizon. It is symbolically declared in `xs_C` and contains one extra point over `Np` representing the current state of the reactor (initial condition).
+
+```{python}
+#| echo: true
+xs_C = SX.sym("xs_C", Np+1)
+```
+
+The initial state of the system is set to the symbols we already know (later we will replace them by numeric *measurements*). For the control input, it is initially set to 50% (`ndot_A_ini`) of the total capacity and that will impact the first command change. Remember that we are handling the variables individually, but in a real-world problem you would probably use a vector with all variables as we edd in `x` before.
+
+```{python}
+#| echo: true
+xt_A, xt_B, xt_C = x_A, x_B, x_C
+
+# Idle control input (initial state)
+ndot_A_ini = 0.5 * ndot_t
+```
+
+Finally we integrate the problem over time. The loop is composed of a few characteristic steps:
+
+1. Creation of a command variable `v_ndot_a_ts` for the current step.
+1. Bounding the values of control variable throughs `lbx` and `ubx`.
+1. Stacking of current system state in `xn` and current commands in `pn`.
+1. Actual time integration of the system dynamics.
+1. Increment of cost function with current deviations.
+1. Add constraints (not done here) to the states and controls.
+1. To complete the cost function, the terminal cost is added with scale `S`.
+
+Below you will recognize a simple Euler time-stepping.
+
+```{python}
+#| echo: true
+for ts in range(Np):
+    v_ndot_A_ts = SX.sym(f"v_qdot_A_{ts}")
+    v_ndot_A.append(v_ndot_A_ts)
+
+    lbx.append(0.0)
+    ubx.append(ndot_A_max)
+
+    xn = vertcat(xt_A, xt_B, xt_C)
+    pn = v_ndot_A_ts
+
+    xt_A = xt_A + tau * F_xdot_A(xn, pn)
+    xt_B = xt_B + tau * F_xdot_B(xn, pn)
+    xt_C = xt_C + tau * F_xdot_C(xn, pn)
+
+    v_prev = ndot_A_ini if ts == 0 else v_ndot_A[ts-1]
+
+    scale_error  = xt_C - xs_C[ts]
+    scale_change = v_prev - v_ndot_A_ts
+
+    cost_error   = Q * pow(scale_error, 2)
+    cost_change  = R * pow(scale_change, 2)
+
+    J += cost_error + cost_change
+
+J += S * pow(xt_C - xs_C[-1], 2)
+```
+
+:::{.callout-note title="About the initial command"}
+Different approaches could be used for the initial command. Here we have decided to illustrate the system with an hypothetical known idle state initial flow rate of $A$, and use `R` to avoid abrupt changes in the flow command. This way we make use of that value here to compute the initial step accordingly. Another approach would to use a constraint to enforce the idle state in the first step, for example.
+:::
+
+The assembly of the system to be solved made below. Here we have chosen to optimize the problem with [Ipopt](https://github.com/coin-or/Ipopt) (which can be accessed though interface `nlpsol`) as a nonlinear problem. In some cases you might wish to use a quadratic solver, but it imposes some limitations in problem formulation. You should do that when solving as a NLP is too slow for your problem. In CasADi's representation `f` denotes the cost, `x` the free variables (the commands here), `g` the constraints list, and `p` the parameters, values that were left in symbolic form and we need to provide numerically. Here `p` is the array of set-points and the system initial state. Interface `nlpsol` allows for creating a solver, which may be used many times later.
+
+```{python}
+#| echo: true
+nlp = {
+    "f": J,
+    "x": vertcat(*v_ndot_A),
+    "g": vertcat(*g),
+    "p": vertcat(xs_C, x)
+}
+
+opts = {"ipopt": {"print_level": 3}}
+solver = nlpsol("solver", "ipopt", nlp, opts)
+```
+
+Below we can inspect the interface of the solver with the sizes of the arrays we must provide.
+
+```{python}
+#| echo: true
+solver
+```
+
+### Solving the problem
+
+Let's now compose the parameters array. For the set-point `xs_C_num` consider that you need the solution to be delivered with a concentration of 20% in the first 120 steps (3/5 of prediction horizon) of $C$ and for the next lot the concetration must be increased to 50%. Below we translate this requirement into an array used for proble setup.
+
+```{python}
+#| echo: true
+n_step = 3 * Np // 5
+
+xs_C_num = np.zeros(Np+1)
+xs_C_num[:n_step] = 0.2
+xs_C_num[n_step:] = 0.5
+```
+
+Let's assume that at the initial time the system is composed only of $B$, the second element in our composition array. With that we can merge the above defined set-points and initial composition arrays in the format expected by the solver (as declared above) to provide `p`.
+
+```{python}
+#| echo: true
+x0_num = [0.0, 1.0, 0.0]
+p = vertcat(xs_C_num, x0_num)
+```
+
+Call of the solver is mostly trivial. If this is the first call to the solver, normally provide an initial guess composed of a fixed value that makes sense to your system (here an array of ones was chosen). When using the solver in an actual control loop, generally the results of last call are provided, what is interesting for speed-up. Since we have a single constraint in `g`, it suffices to provide `lbg=ubg=0.0` to enforce the initial flow rate to the prescribed value. Call can be a bit verbose and you might want to log it in a production environment.
+
+```{python}
+#| echo: true
+guess = np.ones(Np)
+solution = solver(x0=guess, p=p, lbx=lbx, ubx=ubx, lbg=0.0, ubg=0.0)
+```
+
+Below we recover the solution for reuse in system simulation. Observe that the simulation loop is essentially the same as the construction of the cost function but we implement just the time-stepping routines. This is done here just for plotting purposes and estimation of system performance. Often the simulation of the problem is not required in an MPC.
+
+```{python}
+#| echo: true
+ndot_A_opt = solution["x"].full().ravel()
+
+xt_A = np.zeros(Np+1)
+xt_B = np.zeros(Np+1)
+xt_C = np.zeros(Np+1)
+
+xt_A[0] = x0_num[0]
+xt_B[0] = x0_num[1]
+xt_C[0] = x0_num[2]
+
+for ts in range(1, Np+1):
+    xn = vertcat(xt_A[ts-1], xt_B[ts-1], xt_C[ts-1])
+    pn = ndot_A_opt[ts-1]
+
+    xt_A[ts] = xt_A[ts-1] + tau * F_xdot_A(xn, pn)
+    xt_B[ts] = xt_B[ts-1] + tau * F_xdot_B(xn, pn)
+    xt_C[ts] = xt_C[ts-1] + tau * F_xdot_C(xn, pn)
+```
+
+Now let's assume that according to the quality deparment, the product is good to be shipped if its concentration is anywhere withing 5% of the prescribed value. A boolean array `good` is created for displaying. This could be used to predict when the exit valve feed barrels of product or when to recycle/throw the output.
+
+```{python}
+#| echo: true
+xs_C_max = np.clip(xs_C_num + 0.05, 0.0, 1.0)
+xs_C_min = np.clip(xs_C_num - 0.05, 0.0, 1.0)
+good = (xt_C >= xs_C_min) & (xt_C <= xs_C_max)
+```
+
+The next figure illustrates the expected dynamical behavior of the system. First concentration of $C$ rises from zero to the prescribed value in about 15 steps, and because of the change in set-point it starts deviating from target at step 110 to reach the new value. It is also interesting to observe that command saturates at 90%, what indicates that production of the second target is a limiting case for this reactor under the given transition. We respected the process window during 88.6% of the time.
+
+```{python}
+#| echo: true
+steps = list(range(Np+1))
+quality = 100 * sum(good.astype("u8")) / len(good)
+
+cmd = list(ndot_A_opt / ndot_t)
+cmd.append(cmd[-1])
+
+plt.close("all")
+plt.style.use("default")
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+ax.grid(linestyle=":")
+ax.plot(steps, xt_A, lw=2, label="$X_A$")
+ax.plot(steps, xt_B, lw=2, label="$X_B$")
+ax.plot(steps, xt_C, lw=4, label="$X_C$")
+
+ax.step(steps, xs_C_max, "m--", lw=2, label="_none_", where="post")
+ax.step(steps, xs_C_min, "m--", lw=2, label="_none_", where="post")
+ax.step(steps, xs_C_num, "m-", lw=1, label="$X_C$ (target)", where="post")
+
+# Add *negative time* with initial flow rate.
+ax.step([-1, *steps], [ndot_A_ini/ ndot_t, *cmd], "r", lw=2,
+        label="$Q_A$ (relative)", where="post")
+
+ax.fill_between(steps, xs_C_min, xs_C_max, where=good, alpha=0.3)
+
+ax.set_title(f"Expected quality level at {quality:.1f}%")
+ax.set_ylabel("Mole fractions and relative flow rate of A")
+ax.set_xlabel("Action step number over prediction horizon")
+
+ax.legend(loc="upper center", fancybox=True, framealpha=1.0, ncol=5)
+ax.set(xlim=(0, Np), ylim=(0, 1))
+
+fig.tight_layout()
+```
+
+:::{.callout-note title="Representing steps in Matplotlib"}
+Because of how `matplotlib.step` works, to display properly the commands and responses we need to add an extra copy of last command to the end of the results. Using `where="post"` is also required so that a command *starts* at the reference time-step it is supposed to. You can check the plotting behaviour with the following snippet.
+
+```{python}
+#| echo: true
+x = [1, 2, 3, 4]
+y = [0, 1, 3, 1]
+
+z = [1, 2, 0]
+z.append(z[-1])
+
+plt.plot(x, y, "ro-", label="Response")
+plt.step(x, z, "ko-", label="Command", where="post")
+plt.legend(loc=2)
+```
+
+:::
+
+There are many ways you could propose exercises from this guided study:
+
+- Implement a higher order time-stepping scheme.
+- Provide simultaneous simulation/optimization with multiple-shooting.
+- Investigate role of total flow rate or reactor size over quality.
+- Increase error out of target value range (shadowed zones in figure).
+- Use the solver in a simulated control loop with random noise in measurements.
+- ...
+
+## Introduction to multiple shooting
+
+In a real-world application, you would probably use a multiple-shooting approach to simultaneously simulate and optimize the problem, if that is required. That comes with an additional computational cost because the optimization problem becomes larger, as you also solve for the differential states along with controls. In the introductory part of this tutorial, it was chosen to keep focus on the main ideas an exploit a simpler approach (from the implementation standpoint). The multiple shooting strategy is discussed in the following section using a different problem, before turning back to our MPC concept.
+
+## Refactoring into reusable blocks
+
+```{python}
+#| echo: true
+
+```
+
+## Wrapping for deployment
+
+```{python}
+#| echo: true
+
+```

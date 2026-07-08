@@ -1,12 +1,24 @@
+# Temporary publish site:
 _site/
 
+# General outputs:
 *.pdf
 *.html
 *.tex
 *.typ
 *_files/
 
+# Keep templates:
 !**/_assets/*.tex
 !**/_assets/*.typ
+
+# Quarto:
 /.quarto/
-**/*.quarto_ipynb
+**/*.quarto_ipynb*
+
+# Keep typ under physics/
+!physics/**/*.typ
+**/.calepin/*
+
+# Any sandbox:
+*sandbox*
