@@ -804,36 +804,22 @@ def get_multiple_shooting_solver(nk: int, tf: float, opts: dict[str, Any]):
 
     f += weights[1] * pow(Xk[2] - X_prev[2], 2)
 
-    solver = build_nlp_solver(g_variables, g_controls, g_residual,
-                              pars, weights, u_ini, Xs, f, opts)
-
-    return solver
+    return build_nlp_solver(g_variables, g_controls, g_residual,
+                            pars, weights, u_ini, Xs, f, opts)
 ```
 
-In the above you may notice the use of `build_nlp_solver` defined below. Thus function is provided in a separate block simply for display purposes (and a little for separation of concerns). More important than creating an Ipopt interface instance, its goal is to properly create the array of bounds for the constraints, which mau be non trivial.
+In the above you may notice the use of `build_nlp_solver` defined below. Thus function is provided in a separate block simply for display purposes (and a little for separation of concerns).
 
 ```{python}
 #| echo: true
-def build_nlp_solver(
-        g_variables: list[MX],
-        g_controls: list[MX],
-        g_residual: list[MX],
-        pars: MX,
-        weights: MX,
-        u_ini: MX,
-        Xs: MX,
-        f: MX,
-        opts: dict[str, Any]
-    ):
+def build_nlp_solver(g_variables: list[MX], g_controls: list[MX],
+                     g_residual: list[MX], pars: MX, weights: MX, u_ini: MX,
+                     Xs: MX, f: MX, opts: dict[str, Any]):
+    """ Creates the NLP solver and provides a wrapper for calling it. """
     nk = len(g_controls)
-
-    nlp = {
-        "x": vertcat(*g_variables, *g_controls),
-        "p": vertcat(pars, weights, u_ini, Xs),
-        "g": vertcat(*g_residual, *g_variables, *g_controls),
-        "f": f,
-    }
-
+    x = vertcat(*g_variables, *g_controls)
+    p = vertcat(pars, weights, u_ini, Xs)
+    nlp = {"x": x, "p": p, "g": vertcat(*g_residual, x), "f": f}
     solver = nlpsol("solver", "ipopt", nlp, opts)
 
     def wrapper(x0, xs, p, u_min=0.0, u_max=1.0, u_ini=None, guess=None):
@@ -848,29 +834,37 @@ def build_nlp_solver(
         if u_ini is None:
             u_ini = (u_min + u_max) / 2.0
 
-        # Multiple shooting bounds (zero) for *3* species:
-        lbg = np.full(3 * nk, 0.0).tolist()
-        ubg = np.full(3 * nk, 0.0).tolist()
-
-        # Initial states bounds:
-        lbg.extend(x0)
-        ubg.extend(x0)
-
-        # States bounds [0, 1]:
-        lbg.extend(np.full(3 * nk, 0.0).tolist())
-        ubg.extend(np.full(3 * nk, 1.0).tolist())
-
-        # Controls bounds:
-        lbg.extend(np.full(nk, u_min).tolist())
-        ubg.extend(np.full(nk, u_max).tolist())
-
-        pars = list(p)
-        pars.append(u_ini)
-        pars.extend(xs)
+        lbg, ubg = get_bounds(nk, x0, u_min, u_max)
+        pars = [*p, u_ini, *xs]
 
         return solver(x0=guess, p=pars, lbg=lbg, ubg=ubg)
 
     return wrapper
+```
+
+More important than creating an Ipopt interface instance, the goal of `build_nlp_solver` is to properly create the array of bounds for the constraints, which may be non trivial. For that reason, a dedicated function `get_bounds` was used and presented below.
+
+```{python}
+#| echo: true
+def get_bounds(nk, x0, u_min, u_max):
+    """ Create constraint bounds compatible with problem dimensions. """
+    # Multiple shooting bounds (zero) for *3* species:
+    lbg = np.full(3 * nk, 0.0).tolist()
+    ubg = np.full(3 * nk, 0.0).tolist()
+
+    # Initial states bounds:
+    lbg.extend(x0)
+    ubg.extend(x0)
+
+    # States bounds [0, 1]:
+    lbg.extend(np.full(3 * nk, 0.0).tolist())
+    ubg.extend(np.full(3 * nk, 1.0).tolist())
+
+    # Controls bounds:
+    lbg.extend(np.full(nk, u_min).tolist())
+    ubg.extend(np.full(nk, u_max).tolist())
+
+    return lbg, ubg
 ```
 
 ::: {.callout-tip title="Real-world idea"}
@@ -917,6 +911,7 @@ solver = get_multiple_shooting_solver(
 Below we call and evaluate the wall time of the solution/optimization:
 
 ```{python}
+#| echo: true
 %%time
 sol = solver(x0, xs, pars, u_max=0.9, u_ini=0.5)
 ```
@@ -924,6 +919,7 @@ sol = solver(x0, xs, pars, u_max=0.9, u_ini=0.5)
 Calling again with an initial guess (that is actually the problem solution) will reduce the execution time by 25%.
 
 ```{python}
+#| echo: true
 %%time
 guess = np.ravel(sol["x"].full().tolist())
 sol = solver(x0, xs, pars, u_max=0.9, u_ini=0.5, guess=guess)
@@ -935,11 +931,7 @@ For visualization we now provide a function with standard post-processing.
 
 ```{python}
 #| echo: true
-def postprocess_plot(nk, xs, sol):
-    # Unpack solution and reshape into convenient format:
-    x, u = np.split(np.ravel(sol["x"].full()), [-nk])
-    x = x.reshape((-1, 3))
-
+def postprocess_plot(nk, xs, x, u):
     # Perform quality check:
     xt_num = np.hstack((xs[0], xs))
     xs_max = np.clip(xt_num + 0.05, 0.0, 1.0)
@@ -985,16 +977,98 @@ def postprocess_plot(nk, xs, sol):
 #| label: fig-results-3
 #| fig-align: center
 #| fig-cap: "Reactor simulation results and controls over time."
-fig, ax = postprocess_plot(nk, xs, sol)
+
+# Unpack solution and reshape into convenient format:
+x, u = np.split(np.ravel(sol["x"].full()), [-nk])
+x = x.reshape((-1, 3))
+
+fig, ax = postprocess_plot(nk, xs, x, u)
 ```
 
 {{< pagebreak >}}
 
 ## Wrapping for deployment
 
-**Upcoming**
+In this brief section we propose a simple object-oriented wrapper encapsulating what has been developed so far. It is still a rough implementation, that would require many checks for adding robustness. Furthermore, it would be interesting to modify the code to simulate the problem only when required, as we have seen that the multiple-shooting approach considerably slows down the solution.
 
 ```{python}
 #| echo: true
+class CstrMpcModel:
+    """ A simple class to wrap the MPC model. """
+    __slots__ = ("_nk", "_solver",  "_last_sp", "_last_solution",)
 
+    def __init__(self, nk: int = 200, tf: float = 10.0,
+                 opts: dict[str, Any] | None = None) -> None:
+        if opts is None:
+            opts = {
+                "ipopt.print_level": 3,
+                "ipopt.linear_solver": "mumps",
+            }
+
+        self._nk = nk
+        self._solver = get_multiple_shooting_solver(nk, tf, opts)
+
+    def __call__(self, x0: list[float], xs: list[float], *, q: float = 3.0,
+                 n: float = 500.0, k: float = 10.0, R: float = 1.0,
+                 S: float = 100.0, **kwargs) -> dict[str, Any]:
+        """ Provides a standard interface for calling the model solution. """
+        kwargs.setdefault("u_min", 0.0)
+        kwargs.setdefault("u_max", 0.9)
+        kwargs.setdefault("u_ini", 0.5)
+
+        self._last_sp = np.array([*xs])
+        self._last_solution = solver(x0, xs, [q, n, k, R, S], **kwargs)
+
+        return {**self._last_solution}
+
+    @staticmethod
+    def _has_solution(func):
+        """ Decocator to ensure methods are called after solution. """
+        def wrapper(self, *args, **kwargs):
+            if not hasattr(self, "_last_solution"):
+                raise AttributeError("First solve model (__call__)")
+            return func(self, *args, **kwargs)
+        return wrapper
+
+    @_has_solution
+    def unpack(self) -> tuple[list[float], list[float]]:
+        """ Unpack the array of compositions and controls. """
+        sol = np.ravel(self._last_solution["x"].full())
+        x, u = np.split(sol, [-self._nk])
+        return x.reshape((-1, 3)), u
+
+    @_has_solution
+    def plot(self):
+        """ Plots the simulation and controls actions over steps. """
+        return postprocess_plot(self._nk, self._last_sp, *self.unpack())
+
+    @property
+    @_has_solution
+    def next_command(self) -> float:
+        """ Return the next optimal control action. """
+        # return self.unpack()[1][0] # This would be the lazy version.
+        return float(self._last_solution["x"][-self._nk].full()[0][0])
 ```
+
+To wrap-up, we can create an instance of `CstrMpcModel` and call it: it contains all the parameters of our plant by default, so getting the command for the next step is just a matter of sending the current *measurement* `x0` and the set-point over the model control horizon `xs`.
+
+```{python}
+#| echo: true
+#| label: fig-results-4
+#| fig-align: center
+#| fig-cap: "Reactor simulation results and controls over time."
+model = CstrMpcModel()
+result = model(x0, xs)
+fig, ax = model.plot()
+```
+
+::: {.callout-tip title="Next steps"}
+
+By calling `model.next_command` we receive the next optimal control action. It would be interesting to create a simulator that adds some noise to the *measurements* (predicted next composition) and track the robustness of the controller. That is a good exercise to dive deeper into CasADi.
+
+```{python}
+#| echo: true
+model.next_command
+```
+
+:::
