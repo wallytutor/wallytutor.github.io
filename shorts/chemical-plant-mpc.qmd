@@ -2,6 +2,8 @@
 title: A Chemical Plant MPC
 author: Walter Dal'Maz Silva
 date: today
+toc: true
+toc-depth: 2
 execute:
   cache: true
   echo: false
@@ -34,13 +36,28 @@ jupyter:
 #show table: align.with(center)
 ```
 
-:::{.markdown}
+{{< pagebreak >}}
+
+## Foreword {.unnumbered}
+
 In this short article we will introduce the basics of model predictive controls (MPC) by implementing a continuous stirred tank reactor (CSTR) conversion plant model. This will simulate the output concentration of a chemical species whose set-point changes over time, *i.e.* to follow customer orders which require different product concentrations. This is an interesting problem because reactor dilution takes time and a simple proportional-integral controller (PI) would not be enough to track the concentration with minimal out-of-specification periods.
 
 The problem will be implemented with help of [CasADi](https://web.casadi.org/) package and its Python interface so that we can take advantage of its features such as automatic differentiation and interface to robust numerical solvers. The development will be broken down into three parts. First we will implement the model from scratch and test its functioning. Then it will be refactored into a more modular code, before being organized as library code to be reused. The goal is to provide an intuitive introduction to the topic which can serve as a basis for further learning.
-:::
 
-## Problem statement
+Working with CasADi requires a minimal introduction to its data types. The package provides a symbolic class `SX` to enable *algorithmic differentiation* throught the construction of computational graphs. It can be used to build expressions which can be later evaluated through the use of `Function` objects. Numerical data returned from solvers is found in dense matrix format `DM`. Other functions imported from `casadi` are related to problem solution and vector concatenation `vertcat` and are discussed in their context of usage.
+
+```{python}
+#| echo: true
+from casadi import SX, MX, DM, Function
+from casadi import nlpsol, integrator
+from casadi import vertcat, linspace, inf
+import numpy as np
+import matplotlib.pyplot as plt
+```
+
+{{< pagebreak >}}
+
+## Preliminary implementation
 
 The problem we will model here consists of an imaginary chemical plant where reagent $A$ is reacted with carrier fluid $B$ in a single continuous stirred tank reactor (CSTR) to produce $C$, whose concentration is the target. The transformation happens at constant volume, represented by $n_t$ moles. The chemical process is illustrated as the irreversible reaction happening at a known rate $k_1$:
 
@@ -61,20 +78,6 @@ n_t\dot{x}_i &= \dot{n}_i - \dot{n}_t x_i + \dot{n}_{gen,i}
 \dot{n}_{gen,B} &= 0
 \end{aligned}
 $$
-
-## Our toolbox
-
-Working with CasADi requires a minimal introduction to its data types. The package provides a symbolic class `SX` to enable *algorithmic differentiation* throught the construction of computational graphs. It can be used to build expressions which can be later evaluated through the use of `Function` objects. Numerical data returned from solvers is found in dense matrix format `DM`. Other functions imported from `casadi` are related to problem solution and vector concatenation `vertcat` and are discussed in their context of usage.
-
-```{python}
-#| echo: true
-from casadi import SX, DM, Function
-from casadi import nlpsol, vertcat
-import numpy as np
-import matplotlib.pyplot as plt
-```
-
-## Preliminary implementation
 
 Before entering the details of the symbolic model implementation, we start by defining the parameters that are held constant in our problem. That includes the reaction rate $k_1$, the size of reactor $n_t$ and the total flow rate of $\dot{n}_t$.
 
@@ -392,22 +395,26 @@ Now let's assume that according to the quality deparment, the product is good to
 xs_C_max = np.clip(xs_C_num + 0.05, 0.0, 1.0)
 xs_C_min = np.clip(xs_C_num - 0.05, 0.0, 1.0)
 good = (xt_C >= xs_C_min) & (xt_C <= xs_C_max)
-```
 
-The next figure illustrates the expected dynamical behavior of the system. First concentration of $C$ rises from zero to the prescribed value in about 15 steps, and because of the change in set-point it starts deviating from target at step 110 to reach the new value. It is also interesting to observe that command saturates at 90%, what indicates that production of the second target is a limiting case for this reactor under the given transition. We respected the process window during 88.6% of the time.
-
-```{python}
-#| echo: true
 steps = list(range(Np+1))
 quality = 100 * sum(good.astype("u8")) / len(good)
 
 cmd = list(ndot_A_opt / ndot_t)
 cmd.append(cmd[-1])
+```
 
+### Visualizing the results
+
+The next figure illustrates the expected dynamical behavior of the system. First concentration of $C$ rises from zero to the prescribed value in about 15 steps, and because of the change in set-point it starts deviating from target at step 110 to reach the new value. It is also interesting to observe that command saturates at 90%, what indicates that production of the second target is a limiting case for this reactor under the given transition. We respected the process window during 88.6% of the time.
+
+```{python}
+#| echo: true
+#| label: fig-results-1
+#| fig-align: center
+#| fig-cap: "Reactor simulation results and controls over time."
 plt.close("all")
 plt.style.use("default")
-
-fig, ax = plt.subplots(figsize=(8, 5))
+fig, ax = plt.subplots(figsize=(8, 4))
 
 ax.grid(linestyle=":")
 ax.plot(steps, xt_A, lw=2, label="$X_A$")
@@ -427,27 +434,34 @@ ax.fill_between(steps, xs_C_min, xs_C_max, where=good, alpha=0.3)
 ax.set_title(f"Expected quality level at {quality:.1f}%")
 ax.set_ylabel("Mole fractions and relative flow rate of A")
 ax.set_xlabel("Action step number over prediction horizon")
-
-ax.legend(loc="upper center", fancybox=True, framealpha=1.0, ncol=5)
+ax.legend(loc="upper center", fancybox=True, framealpha=1.0,
+          ncol=5, fontsize="small")
 ax.set(xlim=(0, Np), ylim=(0, 1))
 
 fig.tight_layout()
 ```
 
 :::{.callout-note title="Representing steps in Matplotlib"}
+
 Because of how `matplotlib.step` works, to display properly the commands and responses we need to add an extra copy of last command to the end of the results. Using `where="post"` is also required so that a command *starts* at the reference time-step it is supposed to. You can check the plotting behaviour with the following snippet.
 
 ```{python}
 #| echo: true
+#| label: fig-steps-matplotlib
+#| fig-align: center
+#| fig-cap: "Illustration of how steps work in Matplotlib."
 x = [1, 2, 3, 4]
 y = [0, 1, 3, 1]
 
 z = [1, 2, 0]
 z.append(z[-1])
 
+plt.close("all")
+plt.figure(figsize=(4, 3))
 plt.plot(x, y, "ro-", label="Response")
 plt.step(x, z, "ko-", label="Command", where="post")
 plt.legend(loc=2)
+plt.tight_layout()
 ```
 
 :::
@@ -461,18 +475,260 @@ There are many ways you could propose exercises from this guided study:
 - Use the solver in a simulated control loop with random noise in measurements.
 - ...
 
+{{< pagebreak >}}
+
 ## Introduction to multiple shooting
 
-In a real-world application, you would probably use a multiple-shooting approach to simultaneously simulate and optimize the problem, if that is required. That comes with an additional computational cost because the optimization problem becomes larger, as you also solve for the differential states along with controls. In the introductory part of this tutorial, it was chosen to keep focus on the main ideas an exploit a simpler approach (from the implementation standpoint). The multiple shooting strategy is discussed in the following section using a different problem, before turning back to our MPC concept.
+In a real-world application, you would probably use a multiple-shooting approach to simultaneously simulate and optimize the problem, if that is required. That comes with an additional computational cost because the optimization problem becomes larger, as you also solve for the differential states along with controls. In the introductory part of this tutorial, it was chosen to keep focus on the main ideas an exploit a simpler approach (from the implementation standpoint).
 
-## Refactoring into reusable blocks
+The multiple shooting strategy is discussed in the present section using a different problem, before turning back to our MPC concept. We will reformulate a tutorial originally created by Joel Andersson in 2015 and provided with CasADi's examples pack. In this notebook we seek to solve the optimal control problem (OCP) given by
+
+$$
+\min\int_{0}^{10}x_0^2+x_1^2+u^2dt
+$$
+
+subjected to
+
+$$
+\begin{aligned}
+\dot{x}_0 &= zx_0-x_1+u & \quad{}t\in[0,10]\\
+\dot{x}_1 &= x_0        & \quad{}t\in[0,10]\\
+0         &= x_1^2+z-1  & \quad{}t\in[0,10]
+\end{aligned}
+$$
+
+with boundary values
+
+$$
+\begin{aligned}
+x_0(t=0) &= 0\\
+x_1(t=0) &= 1\\
+x_0(t=10) &= 0\\
+x_1(t=10) &= 0
+\end{aligned}
+$$
+
+and bounded control $u\in[-0.75;1.00]$ over the whole interval, with $z$ being an algebraic variable. An alternate implementation and description of this problem is provided with [Dymos](https://openmdao.github.io/dymos/examples/vanderpol/vanderpol.html) package.
+
+### Symbolic DAE definition
+
+The problem is build on `SX` symbolics defined as follows:
+
+```{python}
+#| echo: true
+x = SX.sym("x", 2)
+z = SX.sym("z")
+u = SX.sym("u")
+```
+
+The differential and algebraic equations can then be written as:
+
+```{python}
+#| echo: true
+# Lagrange cost term (quadrature)
+quad = x[0]**2 + x[1]**2 + u**2
+
+# Differential equation
+ode = vertcat(z * x[0] - x[1] + u, x[0])
+
+# Algebraic equation
+alg = x[1]**2 + z - 1
+```
+
+### Integrator setup
+
+Time integration parameters are then declared:
+
+```{python}
+#| echo: true
+# Number of intervals.
+nk = 50
+
+# Final time [s].
+tend = 10.0
+
+# Time step [s].
+tf = tend / nk
+```
+
+Since we have already provided `x` as a state vector it can be supplied directly to the integrator. Below we use the interface to [Sundials IDAS](https://computing.llnl.gov/projects/sundials/idas) to provide DAE time-stepping later in multiple shooting. The value of `tf` provides the integration (output) time step.
+
+```{python}
+#| echo: true
+dae = {"x": x, "z": z, "p": u, "ode": ode, "alg": alg, "quad": quad}
+I = integrator("I", "idas", dae, 0.0, tf)
+```
+
+### Nonlinear problem
+
+To differentiate the variables from DAE to those of multiple shooting NLP, we will use `w` in what follows. Below we initialize arrays for variables, bounds, constraints, and the value of cost function. These will be used to build the NLP.
+
+```{python}
+#| echo: true
+# List of variables
+w = []
+
+# Lower bounds on w
+lbw = []
+
+# Upper bounds on w
+ubw = []
+
+# Constraints
+g = []
+
+# Cost function
+f = 0.0
+```
+
+For multiple shooting we use `MX` matricial symbolics. For enforcing initial state in NPL we create a first state `Xk` and enforce its lower and upper bounds (`lbw` and `ubw`) to match the values given in problem statement.
+
+```{python}
+#| echo: true
+Xk = MX.sym("X0", 2)
+
+w.append(Xk)
+lbw.extend([0.0, 1.0])
+ubw.extend([0.0, 1.0])
+```
+
+The idea behind multiple shooting integration loop is quite simple:
+
+1. we create a local control $u_k$ to integrate over $t_k$ to $t_{k+1}$, which is a free variable in the NLP problem, thus it must be added to `w` and its bounds to `lbw` and `ubw`,
+
+1. then we call the DAE integrator to retrieve (symbolically here) the state and lagrangian quadradure that is produced with control $u_k$ and current problem state $x_k$,
+
+1. perform variable *lifting*, *i.e.* we store predicted state and create a new symbolic state which is now a free variable and must again be added to `w` and its bounds to `lbw` and `ubw`,
+
+1. finally we constrain the created state to match the previous prediction in `g`, what is the *shooting* part of the integration.
+
+```{python}
+#| echo: true
+for k in range(nk):
+    # Local control
+    Uk = MX.sym(f"U{k}")
+    w.append(Uk)
+    lbw.append(-0.75)
+    ubw.append( 1.00)
+
+    # Call integrator function
+    Ik = I(x0=Xk, p=Uk)
+    Xk = Ik["xf"]
+    f += Ik["qf"]
+
+    # "Lift" the variable
+    X_prev = Xk
+
+    # Create new symbolic state
+    Xk = MX.sym(f"X{k+1}", 2)
+    w.append(Xk)
+    lbw.extend([-inf, -inf])
+    ubw.extend([+inf, +inf])
+
+    # Constrain problem
+    g.append(X_prev - Xk)
+```
+
+### Solving the problem
+
+To solve the problem we allocate an NLP solver. Notice that the interface of `nlpsol` is quite similar to the one of `integrator`. Here we make use of [Ipopt](https://github.com/coin-or/Ipopt) to perform optimization. Below we can inspect the interface of the function created by the wrapper.
+
+```{python}
+#| echo: true
+nlp = {"x": vertcat(*w), "f": f, "g": vertcat(*g)}
+
+# "ipopt.output_file": "ipopt.txt"
+opts = {
+    "ipopt.print_level": 3,
+    "ipopt.linear_solver": "mumps"
+}
+
+solver = nlpsol("solver", "ipopt", nlp, opts)
+solver
+```
+
+To solve the NLP we provide an initial guess, the bounds of free variables and the ones of constraints (`lbg and `ubg`. Notice that you could provide constraint relaxation in some cases as allowed by specific problems.
+
+```{python}
+#| echo: true
+sol = solver(x0=0.0, lbx=lbw, ubx=ubw, lbg=0.0, ubg=0.0)
+```
+
+Below you can inspect the keys in solution dictionary. We are looking for `x` here. Since the constraint violation in the report above is acceptable, we can skip the detailed inspection of `g` residuals. You can also check the value of cost `f`.
+
+```{python}
+#| echo: true
+sol.keys()
+```
+
+### Unpacking the results
+
+Since when creating free variables vector `w` we started by initial states before entering the loop to add controls and following states, we have that starting on index 0 the variables correspond to $x_0$, index 1 to $x_1$, and index 2 to $u$. Since there are three variables, we recover then every 3 elements using slicing syntax.
+
+:::{.callout-note title="CasADi to NumPy"}
+
+By calling method `full()` we convert CasADi `DM` numerical array to plain Numpy. Since this will produce one dimension per element, it is usefull to call `ravel()` and get an one-dimensional array.
+
+:::
+
+```{python}
+#| echo: true
+xs = sol["x"].full().ravel()
+
+x0 = xs[0::3]
+x1 = xs[1::3]
+us = xs[2::3]
+```
+
+Because we have an initial state, there are `nk+1` states and `nk` control intervals. To proper represent them graphically we allocate corresponding time arrays.
+
+```{python}
+#| echo: true
+tx = linspace(0.0, tend, nk + 1).full()
+tu = linspace(0.0, tend, nk + 0).full()
+```
+
+### Visualizing the results
+
+Finally the full solution can be visualized. Since controls are held constant over intervals, a step representation is more adapted for this variable.
+
+```{python}
+#| echo: true
+#| label: fig-results-2
+#| fig-align: center
+#| fig-cap: "System dynamics and controls over time."
+plt.close("all")
+plt.style.use("default")
+fig, ax = plt.subplots(figsize=(8, 4))
+
+ax.grid(linestyle=":")
+ax.plot(tx, x0, "r", label="$x_0$")
+ax.plot(tx, x1, "b", label="$x_1$")
+ax.step(tu, us, "k", label="$u$", where="post")
+ax.set(xlabel="Time [s]", ylabel="State [-]")
+ax.set(xlim=(0, tend), ylim=(-0.75, 1.25))
+ax.legend(loc="upper center", fancybox=True, framealpha=1.0,
+          ncol=5, fontsize="small")
+
+fig.tight_layout()
+```
+
+{{< pagebreak >}}
+
+## Refactoring the original problem
+
+**Upcoming**
 
 ```{python}
 #| echo: true
 
 ```
 
+{{< pagebreak >}}
+
 ## Wrapping for deployment
+
+**Upcoming**
 
 ```{python}
 #| echo: true
