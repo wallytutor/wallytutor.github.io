@@ -129,7 +129,7 @@ ndot_gen_B = 0.0
 ndot_gen_C = +rate
 ```
 
-These source terms complete the set of elements required to construct the differential equations describing the time-evolution of the system. The outlet flow rate is given by the product of total flow rate and molar fractions: $n_t x_i$, as per the definition of an ideal CSTR.
+These source terms complete the set of elements required to construct the differential equations describing the time-evolution of the system. The outlet flow rate is given by the product of total flow rate and molar fractions: $\dot{n}_t x_i$, as per the definition of an ideal CSTR.
 
 ```{python}
 #| echo: true
@@ -242,9 +242,6 @@ First we declare the cost function (which is zero initially) and an array for th
 # Cost function:
 J = 0.0
 
-# Array of constraints:
-g = []
-
 # Solution lower/upper boundaries:
 lbx = []
 ubx = []
@@ -326,8 +323,8 @@ The assembly of the system to be solved made below. Here we have chosen to optim
 nlp = {
     "f": J,
     "x": vertcat(*v_ndot_A),
-    "g": vertcat(*g),
     "p": vertcat(xs_C, x)
+    # "g": vertcat(*g), # Not used here!
 }
 
 opts = {"ipopt": {"print_level": 3}}
@@ -362,12 +359,12 @@ x0_num = [0.0, 1.0, 0.0]
 p = vertcat(xs_C_num, x0_num)
 ```
 
-Call of the solver is mostly trivial. If this is the first call to the solver, normally provide an initial guess composed of a fixed value that makes sense to your system (here an array of ones was chosen). When using the solver in an actual control loop, generally the results of last call are provided, what is interesting for speed-up. Since we have a single constraint in `g`, it suffices to provide `lbg=ubg=0.0` to enforce the initial flow rate to the prescribed value. Call can be a bit verbose and you might want to log it in a production environment.
+Call of the solver is mostly trivial. If this is the first call to the solver, normally provide an initial guess composed of a fixed value that makes sense to your system (here an array of ones was chosen). When using the solver in an actual control loop, generally the results of last call are provided, what is interesting for speed-up.  Call can be a bit verbose and you might want to log it in a production environment.
 
 ```{python}
 #| echo: true
 guess = np.ones(Np)
-solution = solver(x0=guess, p=p, lbx=lbx, ubx=ubx, lbg=0.0, ubg=0.0)
+solution = solver(x0=guess, p=p, lbx=lbx, ubx=ubx)
 ```
 
 Below we recover the solution for reuse in system simulation. Observe that the simulation loop is essentially the same as the construction of the cost function but we implement just the time-stepping routines. This is done here just for plotting purposes and estimation of system performance. Often the simulation of the problem is not required in an MPC.
@@ -629,8 +626,14 @@ for k in range(nk):
     # Create new symbolic state
     Xk = MX.sym(f"X{k+1}", 2)
     w.append(Xk)
-    lbw.extend([-cs.inf, -cs.inf])
-    ubw.extend([+cs.inf, +cs.inf])
+
+    if k == nk - 1:
+        # To match mathematical problem terminal conditions:
+        lbw.extend([0.0, 0.0])
+        ubw.extend([0.0, 0.0])
+    else:
+        lbw.extend([-cs.inf, -cs.inf])
+        ubw.extend([+cs.inf, +cs.inf])
 
     # Constrain problem
     g.append(X_prev - Xk)
@@ -802,7 +805,7 @@ def get_multiple_shooting_solver(nk: int, tf: float, opts: dict[str, Any]):
         f += pow(Xk[2] - Xs[k], 2) + weights[0] * pow(Uk - U_prev, 2)
         U_prev = Uk
 
-    f += weights[1] * pow(Xk[2] - X_prev[2], 2)
+    f += weights[1] * pow(Xk[2] - Xs[-1], 2)
 
     return build_nlp_solver(g_variables, g_controls, g_residual,
                             pars, weights, u_ini, Xs, f, opts)
@@ -1016,8 +1019,10 @@ class CstrMpcModel:
         kwargs.setdefault("u_max", 0.9)
         kwargs.setdefault("u_ini", 0.5)
 
+        sol = self._solver(x0, xs, [q, n, k, R, S], **kwargs)
+
         self._last_sp = np.array([*xs])
-        self._last_solution = solver(x0, xs, [q, n, k, R, S], **kwargs)
+        self._last_solution = sol
 
         return {**self._last_solution}
 

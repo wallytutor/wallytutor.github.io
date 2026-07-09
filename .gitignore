@@ -15,6 +15,7 @@ _site/
 # Quarto:
 /.quarto/
 **/*.quarto_ipynb*
+**/*.quarto_ipynb
 
 # Keep typ under physics/
 !physics/**/*.typ
