@@ -48,17 +48,21 @@ Working with CasADi requires a minimal introduction to its data types. The packa
 
 ```{python}
 #| echo: true
-from casadi import SX, MX, DM, Function
-from casadi import nlpsol, integrator
-from casadi import vertcat, linspace, inf
+import casadi as cs
 import numpy as np
 import matplotlib.pyplot as plt
+
+from typing import Any
+from casadi import SX, MX, DM, Function
+from casadi import nlpsol, integrator
+from casadi import vertcat, linspace
 ```
 
 {{< pagebreak >}}
 
 ## Preliminary implementation
 
+:::{.markdown}
 The problem we will model here consists of an imaginary chemical plant where reagent $A$ is reacted with carrier fluid $B$ in a single continuous stirred tank reactor (CSTR) to produce $C$, whose concentration is the target. The transformation happens at constant volume, represented by $n_t$ moles. The chemical process is illustrated as the irreversible reaction happening at a known rate $k_1$:
 
 $$
@@ -80,6 +84,7 @@ n_t\dot{x}_i &= \dot{n}_i - \dot{n}_t x_i + \dot{n}_{gen,i}
 $$
 
 Before entering the details of the symbolic model implementation, we start by defining the parameters that are held constant in our problem. That includes the reaction rate $k_1$, the size of reactor $n_t$ and the total flow rate of $\dot{n}_t$.
+:::
 
 ```{python}
 #| echo: true
@@ -479,6 +484,7 @@ There are many ways you could propose exercises from this guided study:
 
 ## Introduction to multiple shooting
 
+:::{.markdown}
 In a real-world application, you would probably use a multiple-shooting approach to simultaneously simulate and optimize the problem, if that is required. That comes with an additional computational cost because the optimization problem becomes larger, as you also solve for the differential states along with controls. In the introductory part of this tutorial, it was chosen to keep focus on the main ideas an exploit a simpler approach (from the implementation standpoint).
 
 The multiple shooting strategy is discussed in the present section using a different problem, before turning back to our MPC concept. We will reformulate a tutorial originally created by Joel Andersson in 2015 and provided with CasADi's examples pack. In this notebook we seek to solve the optimal control problem (OCP) given by
@@ -509,6 +515,7 @@ x_1(t=10) &= 0
 $$
 
 and bounded control $u\in[-0.75;1.00]$ over the whole interval, with $z$ being an algebraic variable. An alternate implementation and description of this problem is provided with [Dymos](https://openmdao.github.io/dymos/examples/vanderpol/vanderpol.html) package.
+:::
 
 ### Symbolic DAE definition
 
@@ -622,8 +629,8 @@ for k in range(nk):
     # Create new symbolic state
     Xk = MX.sym(f"X{k+1}", 2)
     w.append(Xk)
-    lbw.extend([-inf, -inf])
-    ubw.extend([+inf, +inf])
+    lbw.extend([-cs.inf, -cs.inf])
+    ubw.extend([+cs.inf, +cs.inf])
 
     # Constrain problem
     g.append(X_prev - Xk)
@@ -717,11 +724,268 @@ fig.tight_layout()
 
 ## Refactoring the original problem
 
-**Upcoming**
+:::{.callout-important title="Please, read carefully"}
+The previous sections were carefully discussed and extensive explanations were provided for most of the elements. Here we will be more succint, with focus on the code and the multiple-shooting approach itself more than about CasADi usage.
+:::
+
+### Symbolic DAE and integrator
+
+Creation of the DAE integration - used for time-stepping, as illustrated in the previous section - is provided in this section. The goal is to keep code modular and short for ease of review. Here we have `build_integrator`, which creates the symbols, generates the computational graph, and returns the integrator based on IDAS.
 
 ```{python}
 #| echo: true
+def build_integrator(t_out: float):
+    """ Exposed interface to create the parameters and integrator. """
+    n = SX.sym("n")    # Parameter - Reactor size
+    q = SX.sym("q")    # Parameter - Total flow rate
+    k = SX.sym("k")    # Parameter - Rate kinetics constant
+    x = SX.sym("x", 3) # Variable  - Problem states
+    u = SX.sym("u")    # Variable  - Control parameter
 
+    # Feed flow rates:
+    ndot = vertcat(q * u, q * (1.0 - u), 0.0)
+
+    # Net production rates of species:
+    ndot_gen = vertcat(-k * x[0], 0.0, k * x[0])
+
+    # ODE in vectorized form:
+    ode = (ndot - q * x + ndot_gen) / n
+
+    # Problem parameters:
+    p = vertcat(u, q, n, k)
+
+    # Create IDAS integrator:
+    dae = {"x": x, "p": p, "ode": ode}
+
+    # Integrator for interval [0.0; t_out]:
+    return integrator("I", "idas", dae, 0.0, t_out)
+```
+
+### Nonlinear multiple-shooting
+
+Multiple-shooting is based on the previous introduction to the approach. Nonetheless, because of CasADi's intrinsic limitations to provide parametric bounds for values, the implementation presents a noticiable difference on how the constraints are formulated. Since our goal was to refactor the original problem in a reusable way, it has been decided to keep everything parametric. Thus, we can no longer use `lbw` and `ubw` arguments of the solver, as they are to be defined after the construction.
+
+The solution in this case is to store all variables in the constraint arrays and provide bounds for the variables themselves. To keep things manageable, instead of using a single `g` list to store all the constraints, we organize one list per kind of constraint, and enforce zero only for `g_residual`, providing the proper domain bounds for the other variables.
+
+```{python}
+#| echo: true
+def get_multiple_shooting_solver(nk: int, tf: float, opts: dict[str, Any]):
+    """ Construct internals of multiple-shooting problem. """
+    integ = build_integrator(tf)
+
+    f = 0.0                         # Cost function
+    g_controls  = []                # Stack control variables
+    g_variables = []                # Stack simulation variables
+    g_residual  = []                # Stack multiple shooting residuals
+
+    pars    = MX.sym("pars", 3)     # Hold ndot_tot, n_tot, k_rate
+    weights = MX.sym("weights", 2)  # Parameters for cost function
+    u_ini   = MX.sym("u_ini")       # Parameter for idle state value
+    Xs      = MX.sym("Xs", nk)      # Symbolic parametric SP
+
+    U_prev = u_ini
+    Xk = MX.sym("X0", 3)
+    g_variables.append(Xk)
+
+    # Create a new control step, move integration forward, and lift
+    # the variable; create a new symbolic state for the next step.
+    # Then store all constraints and evaluate cost (see below):
+    for k in range(nk):
+        Uk = MX.sym(f"U{k}")
+        X_prev = integ(x0=Xk, p=vertcat(Uk, pars))["xf"]
+        Xk = MX.sym(f"X{k+1}", 3)
+
+        g_controls.append(Uk)
+        g_variables.append(Xk)
+        g_residual.append(X_prev - Xk)
+
+        f += pow(Xk[2] - Xs[k], 2) + weights[0] * pow(Uk - U_prev, 2)
+        U_prev = Uk
+
+    f += weights[1] * pow(Xk[2] - X_prev[2], 2)
+
+    solver = build_nlp_solver(g_variables, g_controls, g_residual,
+                              pars, weights, u_ini, Xs, f, opts)
+
+    return solver
+```
+
+In the above you may notice the use of `build_nlp_solver` defined below. Thus function is provided in a separate block simply for display purposes (and a little for separation of concerns). More important than creating an Ipopt interface instance, its goal is to properly create the array of bounds for the constraints, which mau be non trivial.
+
+```{python}
+#| echo: true
+def build_nlp_solver(
+        g_variables: list[MX],
+        g_controls: list[MX],
+        g_residual: list[MX],
+        pars: MX,
+        weights: MX,
+        u_ini: MX,
+        Xs: MX,
+        f: MX,
+        opts: dict[str, Any]
+    ):
+    nk = len(g_controls)
+
+    nlp = {
+        "x": vertcat(*g_variables, *g_controls),
+        "p": vertcat(pars, weights, u_ini, Xs),
+        "g": vertcat(*g_residual, *g_variables, *g_controls),
+        "f": f,
+    }
+
+    solver = nlpsol("solver", "ipopt", nlp, opts)
+
+    def wrapper(x0, xs, p, u_min=0.0, u_max=1.0, u_ini=None, guess=None):
+        if guess is None:
+            # Guess (initial state + (1 control + 3 species) * steps):
+            guess = np.zeros(3 + (1 + 3) * nk).tolist()
+
+        # Simple error handling, we could validate everything else.
+        if len(x0) != 3:
+            raise ValueError("x0 must contain 3 values")
+
+        if u_ini is None:
+            u_ini = (u_min + u_max) / 2.0
+
+        # Multiple shooting bounds (zero) for *3* species:
+        lbg = np.full(3 * nk, 0.0).tolist()
+        ubg = np.full(3 * nk, 0.0).tolist()
+
+        # Initial states bounds:
+        lbg.extend(x0)
+        ubg.extend(x0)
+
+        # States bounds [0, 1]:
+        lbg.extend(np.full(3 * nk, 0.0).tolist())
+        ubg.extend(np.full(3 * nk, 1.0).tolist())
+
+        # Controls bounds:
+        lbg.extend(np.full(nk, u_min).tolist())
+        ubg.extend(np.full(nk, u_max).tolist())
+
+        pars = list(p)
+        pars.append(u_ini)
+        pars.extend(xs)
+
+        return solver(x0=guess, p=pars, lbg=lbg, ubg=ubg)
+
+    return wrapper
+```
+
+::: {.callout-tip title="Real-world idea"}
+In the wrapper above, the creation of the states bounds simply assume that these are mole fractions, which may range from zero to one. In some real world applications, there might be harder constraints, *i.e.* a given species concentration must be limited to a lower amount. Then, a more detailed version of this function could be conceived to reach that goal, without the need of modifying the underlining model.
+:::
+
+### Solving the NLP and unpacking
+
+Construction of the problem is mostly trivial now: the most important aspect to take care of is the good order of parameters in `pars`. For deployment, this could be handled by keyword arguments or a dedicated structure holding the data.
+
+```{python}
+#| echo: true
+# Number of intervals.
+nk = 200
+
+# Initial composition of reactor:
+x0 = [0.0, 1.0, 0.0]
+
+# Setpoint profile:
+n_step = 3 * nk // 5
+xs = np.zeros(nk)
+xs[:n_step] = 0.2
+xs[n_step:] = 0.5
+
+pars = [
+    3.0,    # Total flow rate q
+    500.0,  # Total system moles n
+    10.0,   # Rate constant k
+    1.0,    # Weight parameter R
+    100.0,  # Weight parameter S
+]
+
+solver = get_multiple_shooting_solver(
+    nk   = nk,
+    tf   = 10.0,
+    opts = {
+        "ipopt.print_level": 3,
+        "ipopt.linear_solver": "mumps",
+        # "ipopt.output_file": "ipopt.txt"
+    }
+)
+```
+
+Below we call and evaluate the wall time of the solution/optimization:
+
+```{python}
+%%time
+sol = solver(x0, xs, pars, u_max=0.9, u_ini=0.5)
+```
+
+Calling again with an initial guess (that is actually the problem solution) will reduce the execution time by 25%.
+
+```{python}
+%%time
+guess = np.ravel(sol["x"].full().tolist())
+sol = solver(x0, xs, pars, u_max=0.9, u_ini=0.5, guess=guess)
+```
+
+### Visualizing the solution
+
+For visualization we now provide a function with standard post-processing.
+
+```{python}
+#| echo: true
+def postprocess_plot(nk, xs, sol):
+    # Unpack solution and reshape into convenient format:
+    x, u = np.split(np.ravel(sol["x"].full()), [-nk])
+    x = x.reshape((-1, 3))
+
+    # Perform quality check:
+    xt_num = np.hstack((xs[0], xs))
+    xs_max = np.clip(xt_num + 0.05, 0.0, 1.0)
+    xs_min = np.clip(xt_num - 0.05, 0.0, 1.0)
+    good = (x[:, 2] >= xs_min) & (x[:, 2] <= xs_max)
+    quality = 100 * sum(good.astype("u8")) / len(good)
+
+    # Create x-axis for plot (required by ax.step):
+    steps = list(range(nk+1))
+
+    plt.close("all")
+    plt.style.use("default")
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    ax.grid(linestyle=":")
+    ax.plot(steps, x[:, 0], lw=2, label="$X_A$")
+    ax.plot(steps, x[:, 1], lw=2, label="$X_B$")
+    ax.plot(steps, x[:, 2], lw=4, label="$X_C$")
+
+    ax.step(steps, xs_max, "m--", lw=2, label="_none_", where="post")
+    ax.step(steps, xs_min, "m--", lw=2, label="_none_", where="post")
+    ax.step(steps, xt_num, "m-",  lw=1, label="$X_C$ (target)", where="post")
+
+    # Add *negative time* with initial flow rate.
+    ax.step([-1, *steps], [u[0], *u, u[-1]], "r", lw=2,
+            label="$Q_A$ (relative)", where="post")
+
+    ax.fill_between(steps, xs_min, xs_max, where=good, alpha=0.3)
+
+    ax.set_title(f"Expected quality level at {quality:.1f}%")
+    ax.set_ylabel("Mole fractions and relative flow rate of A")
+    ax.set_xlabel("Action step number over prediction horizon")
+    ax.legend(loc="upper center", fancybox=True, framealpha=1.0,
+             ncol=5, fontsize="small")
+    ax.set(xlim=(0, nk), ylim=(0, 1))
+
+    fig.tight_layout()
+    return fig, ax
+```
+
+```{python}
+#| echo: true
+#| label: fig-results-3
+#| fig-align: center
+#| fig-cap: "Reactor simulation results and controls over time."
+fig, ax = postprocess_plot(nk, xs, sol)
 ```
 
 {{< pagebreak >}}
