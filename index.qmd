@@ -49,6 +49,15 @@ Development of a nonlinear MPC for a continuous stirred-tank reactor (CSTR) for 
 :::
 
 ::: {.portfolio-card}
+### Scientific Computing
+
+In this short article we discuss the core principles of scientific computing, with emphasis on the usage of the computer to establish reproducible research workflows. It summarizes my way of working and toolkit.
+
+- [Read Article](shorts/scientific-computing.html){.action-btn .btn-primary}
+- [Download PDF](shorts/scientific-computing.pdf){.action-btn .btn-secondary}
+:::
+
+::: {.portfolio-card}
 ### How Many More Points?
 
 An empirical investigation into data stream convergence using Welford's algorithm for recursive mean and variance estimation. Analyzes stability using confidence intervals and statistical error metrics.
