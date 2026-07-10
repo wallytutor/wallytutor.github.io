@@ -49,7 +49,7 @@ Development of a nonlinear MPC for a continuous stirred-tank reactor (CSTR) for 
 :::
 
 ::: {.portfolio-card}
-### Scientific Computing
+### What about Scientific Computing?
 
 In this short article we discuss the core principles of scientific computing, with emphasis on the usage of the computer to establish reproducible research workflows. It summarizes my way of working and toolkit.
 
