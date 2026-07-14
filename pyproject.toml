@@ -3,6 +3,7 @@ name = "shorts"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "beautifulsoup4>=4.15.0",
     "casadi>=3.7.2",
     "ipykernel>=7.3.0",
     "jupyter-cache>=1.0.1",
@@ -10,6 +11,8 @@ dependencies = [
     "jupytext>=1.19.4",
     "matplotlib>=3.11.0",
     "numpy>=2.5.0",
+    "pandas>=3.0.3",
+    "playwright>=1.61.0",
     "scipy>=1.18.0",
     "sympy>=1.14.0",
 ]
