@@ -14,15 +14,15 @@ format:
 
 ## General
 
-- [What about Scientific Computing?](scientific-computing.html)
+- [What about Scientific Computing?](shorts/scientific-computing.html)
 
 ## Transport and Kinetics
 
-- [A Chemical Plant MPC](chemical-plant-mpc.html)
-- [Steady-state heat transfer](julia-steady-conduction.html)
+- [A Chemical Plant MPC]shorts/chemical-plant-mpc.html)
+- [Steady-state heat transfer](shorts/julia-steady-conduction.html)
 
 ## Data Science and Machine Learning
 
-- [How Many More Points?](recursive-mean.html)
-- [How will I finish?](how-will-i-finish.html)
+- [How Many More Points?](shorts/recursive-mean.html)
+- [How will I finish?](shorts/how-will-i-finish.html)
 <!-- - [Physics and Neural Nets](physics-and-neural-nets.html) -->
