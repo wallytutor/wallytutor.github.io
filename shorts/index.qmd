@@ -1,0 +1,32 @@
+---
+title: Short Articles
+author: Walter Dal'Maz Silva
+date: today
+format:
+  html:
+    theme: default
+---
+
+## By topic
+
+### General
+
+- []
+
+### Transport Phenomena
+
+- [Steady-state heat transfer](julia-steady-conduction.html)
+
+### Model Predictive Control
+
+- [A Chemical Plant MPC](chemical-plant-mpc.html)
+
+### Data Science and Machine Learning
+
+- [How Many More Points?](recursive-mean.html)
+- [How will I finish?](how-will-i-finish.html)
+<!-- - [Physics and Neural Nets](physics-and-neural-nets.html) -->
+
+<!--
+## General index
+-->

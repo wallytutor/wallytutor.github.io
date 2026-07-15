@@ -15,11 +15,10 @@ format:
       width: 5cm
       location: right top
       padding: 10mm
-    fig-format: png
-    fig-dpi: 300
-    # Extras for text-like articles.
     fontsize: 12pt
     linestretch: 1.25
+    fig-format: png
+    fig-dpi: 300
 jupyter:
   jupytext:
     text_representation:
@@ -86,19 +85,29 @@ Julia also supports [Unicode input](https://docs.julialang.org/en/v1/manual/unic
 
 ## Python workflows
 
+*Upcoming*
+
 ## Producing reports
+
+*Upcoming*
 
 ## Operating systems
 
----
+*Upcoming*
 
-If this subject is new to you, to be able to successfully follow the contents you might learn a bit about the environment we will use, [VS Code @sec-vscode] and the minimum about command prompt on [Chapter @sec-working-on-windows].
+<!--
+
+If this subject is new to you, to be able to successfully follow the contents you might learn a bit about the environment we will use, VS Code and the minimum about command prompt on .
 
 A sample setup of an operating system for scientific computing and practicing the above skills is provided in a section dedicated to Ubuntu.
 
 It is also worth getting familiar with high-performance computing (HPC); in the [Top 500](https://top500.org/) page you can get to know the most powerful computers on Earth. The [specification benchmarking](https://spec.org/) page allows for the check of hardware specification, what is interesting when preparing investment in a computing structure. Lastly, when working in multi-user systems it is worth knowing about job management systems such as [Slurm](https://www.schedmd.com/).
 
 ## Languages
+
+
+- [ ] Add an opinionated article about the role of different languages to coding.qmd; discuss C/C++, Fortran, Python, Rust, Go, and others (.NET, functional programming, LISP family).
+
 
 - Python: our main tool of trade.
 
@@ -131,3 +140,5 @@ It is also worth getting familiar with high-performance computing (HPC); in the 
 - Lua: I had happy customers in the past thanks to Lua. You can write your core code in Rust or C, and enable extensions in a language that anyone without programming background can grasp is a few minutes.
 
 - Gnuplot: for standalone CLI applications this is useful to have. You can delegate plotting to an external tool by machine-generating scripts.
+
+ -->
