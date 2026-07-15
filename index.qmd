@@ -73,6 +73,7 @@ An empirical investigation into data stream convergence using Welford's algorith
 You can get in touch or explore my code repositories:
 
 ::: {.social-links}
+- [More Articles](toc-shorts.html){.social-btn .github-btn}
 - [Explore GitHub](https://github.com/wallytutor){.social-btn .github-btn}
 - [Send Email](mailto:walter.dalmazsilva@gmail.com){.social-btn .email-btn}
 :::
