@@ -9,63 +9,52 @@ import argparse
 import os
 import subprocess
 import sys
-from typing import List
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+""" Path to the parent directory of this script. """
 
 
-def sync_project(script_dir: str) -> None:
-    """ Ensure the project dependencies are in sync using uv.
-
-    Parameters
-    ----------
-    script_dir : str
-        The directory of the script.
-    """
+def sync_project() -> None:
+    """ Ensure the project dependencies are in sync using uv. """
     print("Syncing project dependencies...")
-    subprocess.run(["uv", "sync"], cwd=script_dir, check=True)
+    subprocess.run(["uv", "sync"], cwd=SCRIPT_DIR, check=True)
 
 
-def setup_environment(script_dir: str) -> None:
-    """ Set up environment variables for the rendering process.
-
-    Parameters
-    ----------
-    script_dir : str
-        The directory of the script.
-    """
+def setup_environment() -> None:
+    """ Set up environment variables for the rendering process. """
     # Find local virtual environment Python
-    venv_python = os.path.join(
-        script_dir, ".venv", "Scripts", "python.exe"
-    )
-    if not os.path.exists(venv_python):
+    venv_python = SCRIPT_DIR / ".venv" / "Scripts" / "python.exe"
+
+    if not venv_python.exists():
         # Fallback to Unix path
-        venv_python = os.path.join(script_dir, ".venv", "bin", "python")
+        venv_python = SCRIPT_DIR / ".venv" / "bin" / "python"
 
-    os.environ["QUARTO_PYTHON"] = venv_python
+    os.environ["QUARTO_PYTHON"] = str(venv_python)
 
 
-def get_expected_outputs(qmd_path: str) -> List[str]:
+def get_expected_outputs(qmd_path: Path) -> list[str]:
     """ Parse the YAML of a .qmd file to find expected outputs.
 
     Parameters
     ----------
-    qmd_path : str
+    qmd_path : Path
         The path to the .qmd file.
 
     Returns
     -------
-    List[str]
+    list[str]
         A list of expected output filenames (e.g. ['index.html']).
     """
-    formats: List[str] = []
+    formats: list[str] = []
     try:
         with open(qmd_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
     except Exception:
         # Default to html on read failure
-        base_name = os.path.splitext(os.path.basename(qmd_path))[0]
-        return [base_name + ".html"]
+        return [qmd_path.stem + ".html"]
 
-    front_matter: List[str] = []
+    front_matter: list[str] = []
     in_front_matter = False
     for line in lines:
         stripped = line.strip()
@@ -129,8 +118,8 @@ def get_expected_outputs(qmd_path: str) -> List[str]:
     if not formats:
         formats = ["html"]
 
-    base_name = os.path.splitext(os.path.basename(qmd_path))[0]
-    outputs: List[str] = []
+    base_name = qmd_path.stem
+    outputs: list[str] = []
     for fmt in formats:
         fmt_lower = fmt.lower()
         if "html" in fmt_lower or "revealjs" in fmt_lower:
@@ -157,37 +146,42 @@ def get_expected_outputs(qmd_path: str) -> List[str]:
     return outputs
 
 
-def find_qmd_files(root_dir: str) -> List[str]:
+def find_qmd_files(root_dir: Path) -> list[Path]:
     """ Find all .qmd files in the repository, excluding dot directories.
 
     Parameters
     ----------
-    root_dir : str
+    root_dir : Path
         The root directory to search.
 
     Returns
     -------
-    List[str]
-        A list of absolute paths to .qmd files.
+    list[Path]
+        A list of Paths to .qmd files.
     """
-    qmd_files: List[str] = []
-    for root, dirs, files in os.walk(root_dir):
-        # Modify dirs in-place to ignore dot directories
-        dirs[:] = [d for d in dirs if not d.startswith(".")]
-        for file in files:
-            if file.endswith(".qmd") and not file.startswith("."):
-                qmd_files.append(os.path.join(root, file))
+    qmd_files: list[Path] = []
+
+    def traverse(path: Path) -> None:
+        for child in path.iterdir():
+            if child.name.startswith("."):
+                continue
+            if child.is_dir():
+                traverse(child)
+            elif child.suffix == ".qmd":
+                qmd_files.append(child)
+
+    traverse(root_dir)
     return qmd_files
 
 
-def render_qmd(qmd_path: str, target_dir: str) -> None:
+def render_qmd(qmd_path: Path, target_dir: Path) -> None:
     """ Render a .qmd file to the target directory using Quarto.
 
     Parameters
     ----------
-    qmd_path : str
+    qmd_path : Path
         The path to the .qmd file.
-    target_dir : str
+    target_dir : Path
         The output directory.
     """
     print(f"Rendering {qmd_path} to \n - {target_dir}\n")
@@ -195,32 +189,56 @@ def render_qmd(qmd_path: str, target_dir: str) -> None:
         [
             "quarto",
             "render",
-            qmd_path,
+            str(qmd_path),
             "--output-dir",
-            target_dir,
+            str(target_dir),
             "--no-clean",
         ],
         check=True,
     )
 
 
-def publish_site(script_dir: str) -> None:
-    """ Deploy the compiled website files in _site to gh-pages branch.
+def render_site() -> None:
+    """ Manages rendering all files in the directory. """
+    # Ensure _site directory exists
+    site_dir = SCRIPT_DIR / "_site"
+    site_dir.mkdir(exist_ok=True)
 
-    Parameters
-    ----------
-    script_dir : str
-        The directory of the script.
-    """
-    site_dir = os.path.join(script_dir, "_site")
-    if not os.path.exists(site_dir):
+    qmd_files = find_qmd_files(SCRIPT_DIR)
+
+    for qmd_path in qmd_files:
+        relative_dir = qmd_path.parent.relative_to(SCRIPT_DIR)
+        target_dir = site_dir / relative_dir
+
+        expected_outputs = get_expected_outputs(qmd_path)
+        should_render = False
+
+        for out_file in expected_outputs:
+            out_path = target_dir / out_file
+            if not out_path.exists():
+                should_render = True
+                break
+            if qmd_path.stat().st_mtime > out_path.stat().st_mtime:
+                should_render = True
+                break
+
+        if should_render:
+            render_qmd(qmd_path, target_dir)
+        else:
+            print(f"Skipping {qmd_path.name} (up to date)")
+
+
+def publish_site() -> None:
+    """ Deploy the compiled website files in _site to gh-pages branch. """
+    site_dir = SCRIPT_DIR / "_site"
+    if not site_dir.exists():
         print(f"Error: {site_dir} does not exist. Run render first.")
         sys.exit(1)
 
     # Get origin URL from parent repo
     res = subprocess.run(
         ["git", "remote", "get-url", "origin"],
-        cwd=script_dir,
+        cwd=SCRIPT_DIR,
         capture_output=True,
         text=True,
         check=True,
@@ -235,9 +253,8 @@ def publish_site(script_dir: str) -> None:
     subprocess.run(["git", "init"], cwd=site_dir, check=True)
 
     # Create .nojekyll
-    nojekyll_path = os.path.join(site_dir, ".nojekyll")
-    with open(nojekyll_path, "w", encoding="utf-8") as f:
-        pass
+    nojekyll_path = site_dir / ".nojekyll"
+    nojekyll_path.touch(exist_ok=True)
 
     # Manage origin remote
     try:
@@ -286,12 +303,7 @@ def publish_site(script_dir: str) -> None:
 
 
 def main() -> None:
-    """
-    Main entry point for the publish script.
-
-    Parses arguments, sets up the environment, and performs render
-    and/or publish operations.
-    """
+    """ Main entry point for the publish script. """
     parser = argparse.ArgumentParser(
         description="Render and publish Quarto project."
     )
@@ -315,50 +327,17 @@ def main() -> None:
         parser.print_help()
         sys.exit(1)
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
     # Make sure the project is in sync
-    sync_project(script_dir)
+    sync_project()
 
     # Setup the QUARTO_PYTHON environment variable
-    setup_environment(script_dir)
+    setup_environment()
 
     if args.render:
-        # Ensure _site directory exists
-        site_dir = os.path.join(script_dir, "_site")
-        os.makedirs(site_dir, exist_ok=True)
-
-        qmd_files = find_qmd_files(script_dir)
-        for qmd_path in qmd_files:
-            relative_dir = os.path.relpath(
-                os.path.dirname(qmd_path), script_dir
-            )
-            if relative_dir == ".":
-                relative_dir = ""
-            target_dir = os.path.join(site_dir, relative_dir)
-
-            expected_outputs = get_expected_outputs(qmd_path)
-            should_render = False
-
-            for out_file in expected_outputs:
-                out_path = os.path.join(target_dir, out_file)
-                if not os.path.exists(out_path):
-                    should_render = True
-                    break
-                if os.path.getmtime(qmd_path) > os.path.getmtime(out_path):
-                    should_render = True
-                    break
-
-            if should_render:
-                render_qmd(qmd_path, target_dir)
-            else:
-                print(
-                    f"Skipping {os.path.basename(qmd_path)} "
-                    "(up to date)"
-                )
+        render_site()
 
     if args.publish:
-        publish_site(script_dir)
+        publish_site()
 
 
 if __name__ == "__main__":
