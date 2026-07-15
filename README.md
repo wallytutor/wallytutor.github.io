@@ -10,10 +10,10 @@ quarto render index.qmd
 
 ```bash
 # First render everything and inspect:
-./publish.ps1 -Render
+python publish.py --render
 
 # Then publish to the right branch:
-./publish.ps1 -Publish
+python publish.py --publish
 ```
 
 3. Troubleshooting:
