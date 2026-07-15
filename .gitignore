@@ -21,5 +21,9 @@ _site/
 !physics/**/*.typ
 **/.calepin/*
 
+# Notebook temporaries?
+.cache/
+*.vdoc.*
+
 # Any sandbox:
 *sandbox*
