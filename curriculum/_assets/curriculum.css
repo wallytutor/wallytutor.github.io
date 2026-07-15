@@ -1,0 +1,214 @@
+/* Custom styling for multi-column curriculum */
+
+:root {
+    --primary-color: #1a365d;
+    --secondary-color: #2b6cb0;
+    --text-color: #2d3748;
+    --bg-color: #ffffff;
+    --accent-bg: #f7fafc;
+    --border-color: #e2e8f0;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    max-width: 100%;
+    padding: 2.5rem 2rem;
+    line-height: 1.625;
+}
+
+/* Header & Abstract styling */
+header#title-block-header {
+    column-span: all;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 1.75rem;
+    margin-bottom: 2.25rem;
+}
+
+header#title-block-header h1.title {
+    font-size: 2.75rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: var(--primary-color);
+    margin-bottom: 0.15rem;
+}
+
+header#title-block-header p.subtitle {
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: var(--secondary-color);
+    margin-bottom: 1.25rem;
+}
+
+header#title-block-header p.subtitle::after {
+    content: "Brazilian, 37, living in Lyon, France";
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #4a5568;
+    margin-top: 0.35rem;
+}
+
+header#title-block-header .abstract {
+    background-color: var(--accent-bg);
+    border-left: 4px solid var(--secondary-color);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.25rem;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: #4a5568;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Main headings colors and borders */
+h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.35rem;
+    margin-top: 1.75rem;
+    margin-bottom: 0.85rem;
+}
+
+h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+/* List customization */
+ul {
+    padding-left: 1.25rem;
+}
+
+li {
+    margin-bottom: 0.35rem;
+}
+
+/* Links style */
+a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-bottom-color 0.2s ease, color 0.2s ease;
+}
+
+a:hover {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+/* Callout Note styling */
+.callout {
+    border-left-color: var(--secondary-color) !important;
+    background-color: var(--accent-bg) !important;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.callout-header {
+    background-color: #ebf8ff !important;
+    color: var(--secondary-color) !important;
+    font-weight: 600;
+    padding: 0.65rem 1rem !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.callout-title {
+    color: var(--secondary-color) !important;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.callout-body {
+    padding: 1rem !important;
+}
+
+/* Definition list layout */
+dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 1.5rem;
+    row-gap: 0.8rem;
+    margin: 0.5rem 0;
+}
+
+dt {
+    font-weight: 600;
+    color: var(--secondary-color);
+    grid-column: 1;
+}
+
+dd {
+    margin: 0;
+    grid-column: 2;
+    color: var(--text-color);
+}
+
+/* Timeline accent block for education entries */
+.education-entry {
+    border-left: 3px solid var(--secondary-color);
+    padding-left: 1.25rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.education-entry h3 {
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    font-size: 1.2rem;
+}
+
+/* Inline styling for definition lists (like Skills) */
+.inline-dl dl {
+    display: block;
+    margin: 0.5rem 0;
+}
+
+.inline-dl dt {
+    display: inline;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.inline-dl dd {
+    display: inline;
+    margin: 0;
+}
+
+.inline-dl dd p {
+    display: inline;
+    margin: 0;
+}
+
+.inline-dl dd::after {
+    content: "";
+    display: block;
+    margin-bottom: 0.95rem;
+}
+
+/* Single-column layout for the main body */
+#quarto-document-content {
+    column-count: 1;
+}
