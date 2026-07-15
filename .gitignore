@@ -25,5 +25,10 @@ _site/
 .cache/
 *.vdoc.*
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
 # Any sandbox:
 *sandbox*
