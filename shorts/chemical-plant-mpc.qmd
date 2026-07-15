@@ -17,6 +17,8 @@ format:
       width: 5cm
       location: right top
       padding: 10mm
+    fontsize: 12pt
+    linestretch: 1.25
     fig-format: png
     fig-dpi: 300
 jupyter:

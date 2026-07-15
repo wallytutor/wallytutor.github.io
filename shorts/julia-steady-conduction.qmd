@@ -42,7 +42,7 @@ using Printf
 using Unitful
 
 # Stefan-Boltzmann constant.
-const σ = 5.67e-08u"W/(m^2*K^4)"
+const σ = 5.67e-08u"W/(m^2*K^4)";
 ```
 
 ## Linear problem
@@ -63,7 +63,7 @@ Since each component of the composite slab is characterized by a conductivity ac
 #| echo: true
 function conductivity(k, A, L)
     return k * A / L
-end
+end;
 ```
 
 Below we implement the stiffness matrix constructor in terms of the required parameters:
@@ -78,15 +78,16 @@ function stiffness(h, k1, k2, L1, L2; A=1)
     return [ a1  -a1      b0
             -a1   a1+a2  -a2
              b0  -a2   a2+h*A ];
-end
+end;
 ```
 
 Similarly, the column forcing vector is given as:
 
 ```{julia}
+#| echo: true
 function forcing(q, h, Ta; A=1)
     return [ q*A;  0u"W/m^2";  h*A*Ta ];
-end
+end;
 ```
 
 As model parameters one needs to specity the thermal conductivities $k$ and associated thicknesses $L$ of plates and the *known* heat transfer coefficient $h$ on the side the slab is exposed to convective heat transfer. All these values are provided below with respective physical units.
@@ -97,7 +98,7 @@ h = 5u"W/(m^2*K)"
 k1 = 5.0u"W/(m*K)"
 k2 = 0.5u"W/(m*K)"
 L1 = 1.0u"m"
-L2 = 1.0u"m"
+L2 = 1.0u"m";
 ```
 
 To complete the boundary conditions, the heat flux $q_1$ and environment temperature $T_a$ are given below.
@@ -105,7 +106,7 @@ To complete the boundary conditions, the heat flux $q_1$ and environment tempera
 ```{julia}
 #| echo: true
 q1 = 20.0u"W/m^2"
-Ta = 300.0u"K"
+Ta = 300.0u"K";
 ```
 
 Now we are able to create the problem and inspect elements.
@@ -130,7 +131,7 @@ T = inv(M) * f
 
 Below we inspect the solution at the nodal positions (filled dots). Since thermal conductivities were assumed constant in this case, dashed lines extrapolating the linear solution between the nodes are also provided.
 
-Temperature profile across plate with convection boundary condition.
+Temperature profile across plate with convection boundary condition is presented in @fig-results-1.
 
 ```{julia}
 #| echo: true
@@ -237,14 +238,14 @@ step = createproblem(Ta, h, ε, k1, k2, L1, L2)
 T = solveproblem(guess, step)
 ```
 
-Temperature profile across plate with radiation enabled.
+Temperature profile across plate with radiation enabled is presented in @fig-results-2.
 
 ```{julia}
 #| echo: true
 #| fig-cap: Temperature profile across plate with radiation boundary condition.
 #| fig-align: center
 #| out-width: "50%"
-#| label: fig-results-1
+#| label: fig-results-2
 with_theme() do
     fig = Figure(size = (500, 300))
     ax = Axis(fig[1, 1])
