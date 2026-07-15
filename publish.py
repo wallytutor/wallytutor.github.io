@@ -9,6 +9,7 @@ import argparse
 import os
 import subprocess
 import sys
+import frontmatter
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -46,80 +47,27 @@ def get_expected_outputs(qmd_path: Path) -> list[str]:
     list[str]
         A list of expected output filenames (e.g. ['index.html']).
     """
-    formats: list[str] = []
     try:
-        with open(qmd_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+        post = frontmatter.load(qmd_path)
+        fmt_data = post.metadata.get("format")
     except Exception:
-        # Default to html on read failure
         return [qmd_path.stem + ".html"]
 
-    front_matter: list[str] = []
-    in_front_matter = False
-    for line in lines:
-        stripped = line.strip()
-        if stripped == "---":
-            if not in_front_matter:
-                in_front_matter = True
-                continue
-            else:
-                break
-        if in_front_matter:
-            front_matter.append(line)
+    formats: list[str] = []
 
-    format_index = -1
-    format_indent = -1
-    for i, line in enumerate(front_matter):
-        stripped = line.strip()
-        if stripped.startswith("format:") or (
-            ":" in stripped
-            and stripped.split(":", 1)[0].strip() == "format"
-        ):
-            format_index = i
-            format_indent = len(line) - len(line.lstrip())
-            break
-
-    if format_index != -1:
-        parts = front_matter[format_index].split(":", 1)
-        value = parts[1].strip() if len(parts) > 1 else ""
-        if "#" in value:
-            value = value.split("#", 1)[0].strip()
-
-        if value:
-            if value.startswith("[") and value.endswith("]"):
-                formats = [
-                    fmt.strip().strip('"').strip("'")
-                    for fmt in value[1:-1].split(",")
-                ]
-            else:
-                formats = [value.strip('"').strip("'")]
-        else:
-            sub_indent = -1
-            for j in range(format_index + 1, len(front_matter)):
-                line = front_matter[j]
-                stripped = line.strip()
-                if not stripped or stripped.startswith("#"):
-                    continue
-                indent = len(line) - len(line.lstrip())
-                if indent <= format_indent:
-                    break
-                if sub_indent == -1:
-                    sub_indent = indent
-                if indent == sub_indent:
-                    if ":" in stripped:
-                        key = (
-                            stripped.split(":", 1)[0]
-                            .strip()
-                            .strip('"')
-                            .strip("'")
-                        )
-                        formats.append(key)
+    if isinstance(fmt_data, dict):
+        formats = list(fmt_data.keys())
+    elif isinstance(fmt_data, list):
+        formats = [str(f) for f in fmt_data]
+    elif isinstance(fmt_data, str) and fmt_data.strip():
+        formats = [fmt_data.strip()]
 
     if not formats:
         formats = ["html"]
 
     base_name = qmd_path.stem
     outputs: list[str] = []
+
     for fmt in formats:
         fmt_lower = fmt.lower()
         if "html" in fmt_lower or "revealjs" in fmt_lower:
@@ -140,6 +88,7 @@ def get_expected_outputs(qmd_path: Path) -> list[str]:
             ext = f".{fmt_lower}"
 
         out_file = base_name + ext
+
         if out_file not in outputs:
             outputs.append(out_file)
 
