@@ -20,6 +20,7 @@ format:
 
 - [A Chemical Plant MPC](shorts/chemical-plant-mpc.html)
 - [Steady-state heat transfer](shorts/julia-steady-conduction.html)
+- [Transient heat transfer](shorts/julia-transient-heat-transfer.html)
 
 ## Data Science and Machine Learning
 
