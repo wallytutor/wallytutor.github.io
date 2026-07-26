@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Walter Dal’Maz Silva">
+<meta name="dcterms.date" content="2026-07-27">
+
+<title>Thermal analysis simulation</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="julia-materials-kinetics_files/libs/clipboard/clipboard.min.js"></script>
+<script src="julia-materials-kinetics_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="julia-materials-kinetics_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="julia-materials-kinetics_files/libs/quarto-html/popper.min.js"></script>
+<script src="julia-materials-kinetics_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="julia-materials-kinetics_files/libs/quarto-html/anchor.min.js"></script>
+<link href="julia-materials-kinetics_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="julia-materials-kinetics_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="julia-materials-kinetics_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="julia-materials-kinetics_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="julia-materials-kinetics_files/libs/bootstrap/bootstrap-efbb37e9afcc02144ebbc7afd12a776f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="julia-materials-kinetics.pdf"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Thermal analysis simulation</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Walter Dal’Maz Silva </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 27, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>In this note we investigate the right implementation to reproduce the kinetics of kaolinite calcination reported by <span class="citation" data-cites="Eskelinen2015">Eskelinen et al. (<a href="#ref-Eskelinen2015" role="doc-biblioref">2015</a>)</span>. Neither their model nor their references properly provide the concentration units used in the rate laws, so that becomes an issue when trying to reproduce the results. Here we derive the equations for a complete mass and energy balance to simulate a coupled DSC/TGA analysis of the material in with different concentration units in the rate laws.</p>
+<div id="6645a8ec" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Pkg</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">open</span>(<span class="st">"pkg_init.log"</span>, <span class="st">"w"</span>) <span class="cf">do</span> log</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Pkg</span>.<span class="fu">activate</span>(<span class="fu">joinpath</span>(<span class="pp">@__DIR__</span>, <span class="st">"julia-shared"</span>); io<span class="op">=</span>log)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">push!</span>(<span class="cn">LOAD_PATH</span>, <span class="fu">joinpath</span>(<span class="pp">@__DIR__</span>, <span class="st">"scripts"</span>))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">AuChimiste</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CairoMakie</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DifferentialEquations</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Latexify</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearAlgebra</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">ModelingToolkit</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">NumericalIntegration</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Printf</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Symbolics</span>: scalarize</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SciCompDSL</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="species-properties" class="level2">
+<h2 class="anchored" data-anchor-id="species-properties">Species properties</h2>
+<p>In what follows the condensate species will be indexed as the next list, so for simplifying notation species will be referred to solely by their index.</p>
+<ol type="1">
+<li>Liquid water</li>
+<li>Kaolinite <span class="math inline">\(Al_2Si_2O_5(OH)_4\)</span></li>
+<li>Metakaolin <span class="math inline">\(Al_2Si_2O_7\)</span></li>
+<li><em>Spinel</em> <span class="math inline">\(Al_4Si_3O_{12}\)</span></li>
+<li>Amorphous silica <span class="math inline">\(SiO_2\)</span></li>
+</ol>
+<p>Final conversion of spinel into mullite and cristobalite is neglected here.</p>
+<p>Polynomials for specific heat are those of Schieltz and Soliman <a href="@cite">Schieltz1964</a>, except for <em>spinel</em> phase for which at the time of the publication was unknown. A rough estimate of its value is provided by Eskelinen <em>et al.</em> <a href="@cite">Eskelinen2015</a>. Since this phase is the least relevant in the present study and the order of magnitude seems correct, it is employed in the simulations.</p>
+<p>Below we start by loading the database and displaying the species table:</p>
+<div id="9feab549" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use built-in database:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tdb <span class="op">=</span> <span class="fu">AuChimisteDatabase</span>(; selected_species <span class="op">=</span> [</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"WATER_L"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"KAOLINITE"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"METAKAOLIN"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"SIO2_GLASS"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"SPINEL"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>AuChimiste.<span class="fu">speciestable</span>(tdb)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div><div style="float: left;"><span>5×4 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame caption-top table table-sm table-striped small">
+<thead>
+<tr class="columnLabelRow header">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">names</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">display</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">source</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">state</th>
+</tr>
+<tr class="columnLabelRow even">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+</tr>
+</thead>
+<tbody>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">KAOLINITE</td>
+<td style="text-align: left;">Kaolinite</td>
+<td style="text-align: left;">SCHIELTZ1964</td>
+<td style="text-align: left;">solid</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">METAKAOLIN</td>
+<td style="text-align: left;">Metakaolin</td>
+<td style="text-align: left;">SCHIELTZ1964</td>
+<td style="text-align: left;">solid</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">SIO2_GLASS</td>
+<td style="text-align: left;">SiO2 (glass)</td>
+<td style="text-align: left;">SCHIELTZ1964</td>
+<td style="text-align: left;">solid</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">4</td>
+<td style="text-align: left;">SPINEL</td>
+<td style="text-align: left;">Spinel</td>
+<td style="text-align: left;">HYPOTHETICAL</td>
+<td style="text-align: left;">solid</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">5</td>
+<td style="text-align: left;">WATER_L</td>
+<td style="text-align: left;">Water (liquid)</td>
+<td style="text-align: left;">SCHIELTZ1964</td>
+<td style="text-align: left;">liquid</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Because the mechanism assumes a given species indexing, we enforce it below:</p>
+<div id="4724c875" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Materials for considered phases as indexed:</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> materials <span class="op">=</span> [</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    tdb.species.WATER_L</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    tdb.species.KAOLINITE</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    tdb.species.METAKAOLIN</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    tdb.species.SPINEL</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    tdb.species.SIO2_GLASS</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Molecular masses of considered phases [kg/mol]:</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> W <span class="op">=</span> <span class="fu">map</span>(AuChimiste.molar_mass, materials);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Computing mixture properties (specific heat) makes use of this indexing too:</p>
+<div id="bac61ce2" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Mass weighted mixture specific heat [J/(kg.K)]"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">mixturespecificheat</span>(T, Y)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Retrieve specific heat for all species as stated above:</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># specificheat(T) = map(m-&gt;AuChimiste.specific_heat(m, T), materials)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># scalarize(Y' * specificheat(T))</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cp</span>(m, y) <span class="op">=</span> y <span class="op">*</span> AuChimiste.<span class="fu">specific_heat</span>(m, T)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">cp</span>(m, y) <span class="cf">for</span> (m, y) <span class="kw">in</span> <span class="fu">zip</span>(materials, Y))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="global-mechanism" class="level2">
+<h2 class="anchored" data-anchor-id="global-mechanism">Global mechanism</h2>
+<p>Here we provide the mechanism discussed by #Eskelinen2015. Individual reaction steps are better described by Holm <span class="citation" data-cites="Holm2001">Holm (<a href="#ref-Holm2001" role="doc-biblioref">2001</a>)</span>, especially beyond our scope at high temperatures.</p>
+<p><span class="math display">\[
+\begin{aligned}
+H_2O_{(l)} &amp;\rightarrow H_2O_{(g)} &amp; \Delta{}H&gt;0\\
+Al_2Si_2O_5(OH)_4 &amp;\rightarrow Al_2Si_2O_7 + 2H_2O_{(g)} &amp; \Delta{}H&gt;0\\
+2Al_2Si_2O_7 &amp;\rightarrow Al_4Si_3O_{12} + {SiO_2}_{(a)} &amp; \Delta{}H&lt;0
+\end{aligned}
+\]</span> Be <span class="math inline">\(r_{i}\)</span> the rate of the above reactions in molar units, <em>i.e.</em> <span class="math inline">\(mol\cdotp{}s^{-1}\)</span>, then the rate of production of each of the considered species in solid state is given as:</p>
+<p><span class="math display">\[
+\begin{pmatrix}
+\dot{\omega}_1\\
+\dot{\omega}_2\\
+\dot{\omega}_3\\
+\dot{\omega}_4\\
+\dot{\omega}_5\\
+\end{pmatrix}
+=
+\begin{pmatrix}
+-1 &amp;  0 &amp;  0\\
+  0 &amp; -1 &amp;  0\\
+  0 &amp;  1 &amp; -2\\
+  0 &amp;  0 &amp;  1\\
+  0 &amp;  0 &amp;  1\\
+\end{pmatrix}
+\begin{pmatrix}
+r_1\\
+r_2\\
+r_3\\
+\end{pmatrix}
+\]</span></p>
+<p>In matrix notation one can write <span class="math inline">\(\dot{\omega}=\nu\cdotp{}r\)</span>, as it will be implemented. By multiplying each element of the resulting array by its molecular mass we get the net production rates in mass units. Constant <span class="math inline">\(\nu\)</span> provides the required coefficients matrix.</p>
+<p>Mass loss through evaporation and dehydroxylation is handled separately because it becomes simpler to evaluate the condensate phases specific heat in a later stage. The first two reactions release water to the gas phase, so <span class="math inline">\(\eta\)</span> below provides the stoichiometry for this processes.</p>
+<p>Sample mass loss is then simply <span class="math inline">\(\dot{m}=\eta\cdotp{}rM_1\)</span>, where <span class="math inline">\(M_1\)</span> is water molecular mass so that the expression is given in <span class="math inline">\(kg\cdotp{}s^{-1}\)</span>.</p>
+<div id="fce7068e" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Solid state stoichiometric coefficients</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> ν <span class="op">=</span> [</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span><span class="fl">1</span>  <span class="fl">0</span>  <span class="fl">0</span>;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>     <span class="fl">0</span> <span class="op">-</span><span class="fl">1</span>  <span class="fl">0</span>;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>     <span class="fl">0</span>  <span class="fl">1</span> <span class="op">-</span><span class="fl">2</span>;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>     <span class="fl">0</span>  <span class="fl">0</span>  <span class="fl">1</span>;</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>     <span class="fl">0</span>  <span class="fl">0</span>  <span class="fl">1</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Gas phase stoichiometric coefficients</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> η <span class="op">=</span> [<span class="fl">1</span> <span class="fl">2</span> <span class="fl">0</span>];</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="7671d64c" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Species net production rate [kg/s]"</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">netproductionrates</span>(r) <span class="op">=</span> <span class="fu">diagm</span>(W) <span class="op">*</span> (ν <span class="op">*</span> r);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="3ce537fd" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Sample mass loss rate [kg/s]"</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">masslossrate</span>(r) <span class="op">=</span> <span class="op">-</span><span class="fl">1</span> <span class="op">*</span> <span class="fu">sum</span>(η[i] <span class="op">*</span> r[i] <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>) <span class="op">*</span> W[<span class="fl">1</span>];</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># -1 * (η * r) * W[1]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="balance-equations" class="level2">
+<h2 class="anchored" data-anchor-id="balance-equations">Balance equations</h2>
+<p>The modeled system - the solid material - is open in the sense it looses water to the environment. Thus, it is necessary to add this contribution to the balance equations so that evaluated mass fractions remain right. From the definitions below</p>
+<p><span class="math display">\[
+\frac{dm}{dt} = \dot{m}\qquad
+\frac{dm_k}{dt} = \dot{\omega}\qquad
+Y_k = \frac{m_k}{m}
+\]</span></p>
+<p>and using the quotient rule of differentiation we can write</p>
+<p><span class="math display">\[
+\frac{dY_k}{dt}=\frac{m\dot{\omega}-\dot{m}m_k}{m^2}
+\]</span></p>
+<p>that can be simplified to</p>
+<p><span class="math display">\[
+\frac{dY_k}{dt}=\frac{1}{m}\left(\dot{\omega}-\dot{m}Y_k\right)
+\]</span></p>
+<p>which is the form we will implement here. Notice that the computation of <span class="math inline">\(\dot{m}\)</span> is already provided by <code>masslossrate</code> and <span class="math inline">\(\dot{\omega}\)</span> by <code>netproductionrates</code> so we can use the results of those evaluations in the following balance equation:</p>
+<div id="3a3a89a0" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Compute balance equation for species with varying system mass."</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">speciesbalance</span>(ṁ, ω̇, m, Y) <span class="op">=</span> (<span class="fl">1</span> <span class="op">/</span> m) <span class="op">*</span> (ω̇ <span class="op">-</span> Y <span class="op">.*</span> ṁ);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="reaction-kinetics" class="level2">
+<h2 class="anchored" data-anchor-id="reaction-kinetics">Reaction kinetics</h2>
+<p><span class="citation" data-cites="Eskelinen2015">Eskelinen et al. (<a href="#ref-Eskelinen2015" role="doc-biblioref">2015</a>)</span> compile a set of pre-exponential factors and activation energies for <em>Arrhenius</em> rate constants for the above reactions, which are provided in <code>A</code> and <code>Eₐ</code> below. Their reported reaction enthalpies are given in <span class="math inline">\(ΔH\)</span>.</p>
+<p>For such a global approach we do not have the privilege of working with actual concentrations because the mass distribution in the system is unknown and it would be meaningless to work with specific masses. Thus, assume the reaction rates are proportional to the number of moles of the reacting species <span class="math inline">\(n_r\)</span> so we get the required units as exposed above. Then the <span class="math inline">\(r_i\)</span> can be expressed as</p>
+<p><span class="math display">\[
+\begin{aligned}
+r_{i} &amp;= k_i(T)n_r \\[12pt]
+      &amp;= k_i(T)\frac{m_r}{M_r} \\[12pt]
+      &amp;= k_i(T)\frac{Y_r}{M_r}m
+\end{aligned}
+\]</span></p>
+<div id="07a6287b" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Rate constant pre-exponential factor [1/s]."</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> A <span class="op">=</span> [<span class="fl">5.0000e+07</span>; <span class="fl">1.0000e+07</span>; <span class="fl">5.0000e+33</span>];</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="st">"Reaction rate activtation energies [J/(mol.K)]."</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> E <span class="op">=</span> [<span class="fl">6.1000e+04</span>; <span class="fl">1.4500e+05</span>; <span class="fl">8.5600e+05</span>];</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="st">"Reaction enthalpies per unit mass of reactant [J/kg]."</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> ΔH <span class="op">=</span> [<span class="fl">2.2582e+06</span>; <span class="fl">8.9100e+05</span>; <span class="op">-</span><span class="fl">2.1290e+05</span>];</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="7c18c801" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Evaluate rate constants [1/s]."</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rateconstants</span>(T) <span class="op">=</span> A <span class="op">.*</span> <span class="fu">exp</span>.(<span class="op">-</span>E <span class="op">./</span> (AuChimiste.GAS_CONSTANT <span class="op">*</span> T));</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="f7a144cd" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Compute reaction rates [mol/s]."</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">reactionrates</span>(m, T, Y) <span class="op">=</span> m <span class="op">*</span> <span class="fu">rateconstants</span>(T) <span class="op">.*</span> Y[<span class="fl">1</span><span class="op">:</span><span class="fl">3</span>] <span class="op">./</span> W[<span class="fl">1</span><span class="op">:</span><span class="fl">3</span>];</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="8f824452" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Total heat release rate for reactions [J/kg]."</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># heatrelease(r) = (r .* W[1:3])' * ΔH;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">heatrelease</span>(r) <span class="op">=</span> <span class="fu">sum</span>(r[i] <span class="op">*</span> W[i] <span class="op">*</span> ΔH[i] <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="experimental-controls" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-controls">Experimental controls</h2>
+<p>To wrap-up we provide the programmed thermal cycle and the computation of required heat input to produce a perfect heating curve. It must be emphasized that actual DSC machines use some sort of controllers to reach this, what introduces one source of stochastic behavior to the measurement.</p>
+<div id="413124dd" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Thermal cycle to apply to sample."</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">temperature</span>(t, θ̇; T₀ <span class="op">=</span> <span class="fl">298.15</span>) <span class="op">=</span> T₀ <span class="op">+</span> θ̇ <span class="op">*</span> t</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="st">"Required heat input rate to maintain heating rate `θ̇`."</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">heatinput</span>(m, c, θ̇, ḣ) <span class="op">=</span> m <span class="op">*</span> c <span class="op">*</span> θ̇ <span class="op">+</span> ḣ;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="model-statement" class="level2">
+<h2 class="anchored" data-anchor-id="model-statement">Model statement</h2>
+<p>Below we put together everything that has been developed above.</p>
+<p>There are a few different types of quantities here:</p>
+<ul>
+<li>Independent variables, here only $<span class="math inline">\(t\)</span></li>
+<li>Dependent variables, <span class="math inline">\(m\)</span> and <span class="math inline">\(Y\)</span></li>
+<li>Observable derivatives <span class="math inline">\(ṁ\)</span> and <span class="math inline">\(Ẏ\)</span></li>
+<li>Other observables (partial calculations)</li>
+</ul>
+<p>Because of how a DSC analysis is conducted, it was chosen that the only model parameter should be the heating rate <span class="math inline">\(θ̇\)</span>. Furthermore, all other quantities were encoded in the developed functions.</p>
+<p>Below we present the domain-specific language implementation of the model:</p>
+<div id="68728031" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@independent_variables</span> t</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">Differential</span>(t)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@mtkmodel</span> ThermalAnalysis <span class="cf">begin</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@variables</span> <span class="cf">begin</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">m</span>(t)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ṁ</span>(t)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">Y</span>(t)[<span class="fl">1</span><span class="op">:</span><span class="fl">5</span>]</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">Ẏ</span>(t)[<span class="fl">1</span><span class="op">:</span><span class="fl">5</span>]</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">r</span>(t)[<span class="fl">1</span><span class="op">:</span><span class="fl">3</span>]</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ω̇</span>(t)[<span class="fl">1</span><span class="op">:</span><span class="fl">5</span>]</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">T</span>(t)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(t)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ḣ</span>(t)</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">q̇</span>(t)</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@parameters</span> <span class="cf">begin</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>        θ̇</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@equations</span> <span class="cf">begin</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">D</span>(m) <span class="op">~</span> ṁ</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">scalarize</span>(<span class="fu">D</span>.(Y) <span class="op">.~</span> Ẏ)<span class="op">...</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">scalarize</span>(Ẏ <span class="op">.~</span> <span class="fu">speciesbalance</span>(ṁ, ω̇, m, Y))<span class="op">...</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">scalarize</span>(r <span class="op">.~</span> <span class="fu">reactionrates</span>(m, T, Y))<span class="op">...</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>        <span class="fu">scalarize</span>(ω̇ <span class="op">.~</span> <span class="fu">netproductionrates</span>(r))<span class="op">...</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>        ṁ <span class="op">~</span> <span class="fu">masslossrate</span>(r)</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>        T <span class="op">~</span> <span class="fu">temperature</span>(t, θ̇)</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>        c <span class="op">~</span> <span class="fu">mixturespecificheat</span>(T, Y)</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>        ḣ <span class="op">~</span> <span class="fu">heatrelease</span>(r)</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>        q̇ <span class="op">~</span> <span class="fu">heatinput</span>(m, c, θ̇, ḣ)</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Alternatively, it could also be created in a functional form as:</p>
+<div id="69646f71" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Model creation routine."</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">thermal_analysis</span>(; name)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@independent_variables</span> t</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    D <span class="op">=</span> <span class="fu">Differential</span>(t)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    state <span class="op">=</span> <span class="pp">@variables</span>(<span class="cf">begin</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">m</span>(t)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ṁ</span>(t)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">Y</span>(t)[<span class="fl">1</span><span class="op">:</span><span class="fl">5</span>]</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">Ẏ</span>(t)[<span class="fl">1</span><span class="op">:</span><span class="fl">5</span>]</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">r</span>(t)[<span class="fl">1</span><span class="op">:</span><span class="fl">3</span>]</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ω̇</span>(t)[<span class="fl">1</span><span class="op">:</span><span class="fl">5</span>]</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">T</span>(t)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(t)</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ḣ</span>(t)</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">q̇</span>(t)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span>)</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>    param <span class="op">=</span> <span class="pp">@parameters</span>(<span class="cf">begin</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>        θ̇</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span>)</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>    eqs <span class="op">=</span> [</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">D</span>(m) <span class="op">~</span> ṁ</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">scalarize</span>(<span class="fu">D</span>.(Y) <span class="op">.~</span> Ẏ)</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">scalarize</span>(Ẏ <span class="op">.~</span> <span class="fu">speciesbalance</span>(ṁ, ω̇, m, Y))</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">scalarize</span>(r <span class="op">.~</span> <span class="fu">reactionrates</span>(m, T, Y))</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>        <span class="fu">scalarize</span>(ω̇ <span class="op">.~</span> <span class="fu">netproductionrates</span>(r))</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>        ṁ <span class="op">~</span> <span class="fu">masslossrate</span>(r)</span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>        T <span class="op">~</span> <span class="fu">temperature</span>(t, θ̇)</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>        c <span class="op">~</span> <span class="fu">mixturespecificheat</span>(T, Y)</span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>        ḣ <span class="op">~</span> <span class="fu">heatrelease</span>(r)</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>        q̇ <span class="op">~</span> <span class="fu">heatinput</span>(m, c, θ̇, ḣ)</span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">ODESystem</span>(eqs, t, state, param; name)</span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Below we instantiate the model. We observe the expanded form with all variables and observables (remove the semi-colon to see):</p>
+<div id="96f35120" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># @named analysis = ThermalAnalysis();</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> analysis <span class="op">=</span> <span class="fu">thermal_analysis</span>();</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>For solution is is necessary to simplify this system to the equations that really are integrated. Using <code>structural_simplify</code> we reach this goal.</p>
+<div id="ebdc1111" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> <span class="fu">structural_simplify</span>(analysis);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now we can get the actual <code>equations</code>:</p>
+<div id="7307f911" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">equations</span>(model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="19">
+<p><span class="math display">\[ \begin{align}
+\frac{\mathrm{d} ~ m\left( t \right)}{\mathrm{d}t} &amp;= \dot{m}\left( t \right) \\
+\frac{\mathrm{d} ~ Y\_{5}\left( t \right)}{\mathrm{d}t} &amp;= \dot{Y}\_{5}\left( t \right) \\
+\frac{\mathrm{d} ~ Y\_{4}\left( t \right)}{\mathrm{d}t} &amp;= \dot{Y}\_{4}\left( t \right) \\
+\frac{\mathrm{d} ~ Y\_{3}\left( t \right)}{\mathrm{d}t} &amp;= \dot{Y}\_{3}\left( t \right) \\
+\frac{\mathrm{d} ~ Y\_{2}\left( t \right)}{\mathrm{d}t} &amp;= \dot{Y}\_{2}\left( t \right) \\
+\frac{\mathrm{d} ~ Y\_{1}\left( t \right)}{\mathrm{d}t} &amp;= \dot{Y}\_{1}\left( t \right)
+\end{align}
+\]</span></p>
+</div>
+</div>
+<div id="60be17d1" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unknowns</span>(model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div class="ansi-escaped-output">
+<pre>6-element Vector{SymbolicUtils.BasicSymbolicImpl.var"typeof(BasicSymbolicImpl)"{SymReal}}:
+ m(t)
+ (Y(t))[<span class="ansi-blue-fg">5</span>]
+ (Y(t))[<span class="ansi-blue-fg">4</span>]
+ (Y(t))[<span class="ansi-blue-fg">3</span>]
+ (Y(t))[<span class="ansi-blue-fg">2</span>]
+ (Y(t))[<span class="ansi-blue-fg">1</span>]</pre>
+</div>
+</div>
+</div>
+<p>… and the <code>observed</code> quantities (uncomment to inspect).</p>
+<div id="12c5a457" class="cell" data-execution_count="21">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># observed(model)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="solution-utilities" class="level2">
+<h2 class="anchored" data-anchor-id="solution-utilities">Solution utilities</h2>
+<p>To make problem solution and visualization simple we provide the following utilities.</p>
+<div id="utilities-1" class="cell" data-execution_count="22">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="st">    plotmodel(model, sol)</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="st">Standardized plotting of DSC/TGA analyses simulation.</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">plotmodel</span>(model, sol)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    tk <span class="op">=</span> sol[<span class="op">:</span>t]</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    Tk <span class="op">=</span> sol[model.T] <span class="op">.-</span> <span class="fl">273.15</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    mk <span class="op">=</span> sol[model.m]</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    Y1 <span class="op">=</span> sol[model.Y[<span class="fl">1</span>]]</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    Y2 <span class="op">=</span> sol[model.Y[<span class="fl">2</span>]] <span class="op">*</span> <span class="fl">100</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    Y3 <span class="op">=</span> sol[model.Y[<span class="fl">3</span>]] <span class="op">*</span> <span class="fl">100</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    Y4 <span class="op">=</span> sol[model.Y[<span class="fl">4</span>]] <span class="op">*</span> <span class="fl">100</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    Y5 <span class="op">=</span> sol[model.Y[<span class="fl">5</span>]] <span class="op">*</span> <span class="fl">100</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    q <span class="op">=</span> sol[model.q̇]</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    Y1max <span class="op">=</span> <span class="fu">maximum</span>(Y1)</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>    y1 <span class="op">=</span> <span class="fl">100</span>Y1 <span class="op">/</span> Y1max</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>    label_water <span class="op">=</span> <span class="st">"Water (</span><span class="sc">$</span>(<span class="pp">@sprintf</span>(<span class="st">"%.2f"</span>, <span class="fl">100</span>Y1max))<span class="st">%wt)"</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>    DSC <span class="op">=</span> <span class="fl">1.0e-03</span> <span class="op">*</span> (q <span class="op">./</span> mk[<span class="fl">1</span>])</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    TGA <span class="op">=</span> <span class="fl">100</span>mk <span class="op">./</span> <span class="fu">maximum</span>(mk)</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>    δH <span class="op">=</span> <span class="fl">1e-06</span><span class="fu">cumul_integrate</span>(tk, <span class="fl">1000</span>DSC)</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">500</span>, <span class="fl">500</span>))</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>    ax1 <span class="op">=</span> <span class="fu">Axis</span>(f[<span class="fl">1</span>, <span class="fl">1</span>])</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>    ax2 <span class="op">=</span> <span class="fu">Axis</span>(f[<span class="fl">2</span>, <span class="fl">1</span>])</span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>    ax3 <span class="op">=</span> <span class="fu">Axis</span>(f[<span class="fl">3</span>, <span class="fl">1</span>])</span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>    ax4 <span class="op">=</span> <span class="fu">Axis</span>(f[<span class="fl">3</span>, <span class="fl">1</span>])</span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax1, Tk, y1; color <span class="op">=</span> <span class="op">:</span>blue, label <span class="op">=</span> label_water)</span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax1, Tk, Y2; color <span class="op">=</span> <span class="op">:</span>black, label <span class="op">=</span> <span class="st">"Kaolinite"</span>)</span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax1, Tk, Y3; color <span class="op">=</span> <span class="op">:</span>green, label <span class="op">=</span> <span class="st">"Metakaolin"</span>)</span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax1, Tk, Y4; color <span class="op">=</span> <span class="op">:</span>red, label <span class="op">=</span> <span class="st">"Spinel"</span>)</span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax1, Tk, Y5; color <span class="op">=</span> <span class="op">:</span>cyan, label <span class="op">=</span> <span class="st">"Silica (A)"</span>)</span>
+<span id="cb21-38"><a href="#cb21-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax2, Tk, TGA; color <span class="op">=</span> <span class="op">:</span>black, label <span class="op">=</span> <span class="st">"TGA"</span>)</span>
+<span id="cb21-39"><a href="#cb21-39" aria-hidden="true" tabindex="-1"></a>    l3 <span class="op">=</span> <span class="fu">lines!</span>(ax3, Tk, DSC; color <span class="op">=</span> <span class="op">:</span>black)</span>
+<span id="cb21-40"><a href="#cb21-40" aria-hidden="true" tabindex="-1"></a>    l4 <span class="op">=</span> <span class="fu">lines!</span>(ax4, Tk, δH; color <span class="op">=</span> <span class="op">:</span>red)</span>
+<span id="cb21-41"><a href="#cb21-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-42"><a href="#cb21-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">axislegend</span>(ax1; position <span class="op">=</span> <span class="op">:</span>ct, orientation <span class="op">=</span> <span class="op">:</span>horizontal)</span>
+<span id="cb21-43"><a href="#cb21-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">axislegend</span>(ax2; position <span class="op">=</span> <span class="op">:</span>rt, orientation <span class="op">=</span> <span class="op">:</span>horizontal)</span>
+<span id="cb21-44"><a href="#cb21-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">axislegend</span>(ax3, [l3, l4], [<span class="st">"DSC"</span>, <span class="st">"ΔH"</span>], position <span class="op">=</span> <span class="op">:</span>lt,</span>
+<span id="cb21-45"><a href="#cb21-45" aria-hidden="true" tabindex="-1"></a>              orientation <span class="op">=</span> <span class="op">:</span>horizontal)</span>
+<span id="cb21-46"><a href="#cb21-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-47"><a href="#cb21-47" aria-hidden="true" tabindex="-1"></a>    ax1.ylabel <span class="op">=</span> <span class="st">"Mass content [%]"</span></span>
+<span id="cb21-48"><a href="#cb21-48" aria-hidden="true" tabindex="-1"></a>    ax2.ylabel <span class="op">=</span> <span class="st">"Residual mass [%]"</span></span>
+<span id="cb21-49"><a href="#cb21-49" aria-hidden="true" tabindex="-1"></a>    ax3.ylabel <span class="op">=</span> <span class="st">"Power input [mW/mg]"</span></span>
+<span id="cb21-50"><a href="#cb21-50" aria-hidden="true" tabindex="-1"></a>    ax4.ylabel <span class="op">=</span> <span class="st">"Enthalpy change [MJ/kg]"</span></span>
+<span id="cb21-51"><a href="#cb21-51" aria-hidden="true" tabindex="-1"></a>    ax4.xlabel <span class="op">=</span> <span class="st">"Temperature [°C]"</span></span>
+<span id="cb21-52"><a href="#cb21-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-53"><a href="#cb21-53" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">100</span><span class="op">:</span><span class="fl">1200</span></span>
+<span id="cb21-54"><a href="#cb21-54" aria-hidden="true" tabindex="-1"></a>    ax1.xticks <span class="op">=</span> xticks</span>
+<span id="cb21-55"><a href="#cb21-55" aria-hidden="true" tabindex="-1"></a>    ax2.xticks <span class="op">=</span> xticks</span>
+<span id="cb21-56"><a href="#cb21-56" aria-hidden="true" tabindex="-1"></a>    ax3.xticks <span class="op">=</span> xticks</span>
+<span id="cb21-57"><a href="#cb21-57" aria-hidden="true" tabindex="-1"></a>    ax4.xticks <span class="op">=</span> xticks</span>
+<span id="cb21-58"><a href="#cb21-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-59"><a href="#cb21-59" aria-hidden="true" tabindex="-1"></a>    ax1.yticks <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">25</span><span class="op">:</span><span class="fl">100</span></span>
+<span id="cb21-60"><a href="#cb21-60" aria-hidden="true" tabindex="-1"></a>    ax2.yticks <span class="op">=</span> <span class="fl">80</span><span class="op">:</span><span class="fl">4</span><span class="op">:</span><span class="fl">100</span></span>
+<span id="cb21-61"><a href="#cb21-61" aria-hidden="true" tabindex="-1"></a>    ax4.yticks <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">0.5</span><span class="op">:</span><span class="fl">2.5</span></span>
+<span id="cb21-62"><a href="#cb21-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-63"><a href="#cb21-63" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlims!</span>(ax1, (<span class="fl">0</span>, <span class="fl">1200</span>))</span>
+<span id="cb21-64"><a href="#cb21-64" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlims!</span>(ax2, (<span class="fl">0</span>, <span class="fl">1200</span>))</span>
+<span id="cb21-65"><a href="#cb21-65" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlims!</span>(ax3, (<span class="fl">0</span>, <span class="fl">1200</span>))</span>
+<span id="cb21-66"><a href="#cb21-66" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlims!</span>(ax4, (<span class="fl">0</span>, <span class="fl">1200</span>))</span>
+<span id="cb21-67"><a href="#cb21-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-68"><a href="#cb21-68" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ylims!</span>(ax1, (<span class="op">-</span><span class="fl">1</span>, <span class="fl">135</span>))</span>
+<span id="cb21-69"><a href="#cb21-69" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ylims!</span>(ax2, (<span class="fl">84</span>, <span class="fl">100</span>))</span>
+<span id="cb21-70"><a href="#cb21-70" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ylims!</span>(ax4, (<span class="fl">0</span>, <span class="fl">2.5</span>))</span>
+<span id="cb21-71"><a href="#cb21-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-72"><a href="#cb21-72" aria-hidden="true" tabindex="-1"></a>    ax4.ygridcolor <span class="op">=</span> <span class="op">:</span>transparent</span>
+<span id="cb21-73"><a href="#cb21-73" aria-hidden="true" tabindex="-1"></a>    ax4.yaxisposition <span class="op">=</span> <span class="op">:</span>right</span>
+<span id="cb21-74"><a href="#cb21-74" aria-hidden="true" tabindex="-1"></a>    ax4.ylabelcolor <span class="op">=</span> <span class="op">:</span>red</span>
+<span id="cb21-75"><a href="#cb21-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-76"><a href="#cb21-76" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> f</span>
+<span id="cb21-77"><a href="#cb21-77" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="utilities-2" class="cell" data-execution_count="23">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="st">    solvemodel(model, τ, Θ̇, m₀, Y₀)</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="st">Standard interface for solving the `ThermalAnalysis` model.</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">solvemodel</span>(model, τ, Θ̇, m, Y, solver <span class="op">=</span> <span class="cn">nothing</span>, kwargs<span class="op">...</span>)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    defaults <span class="op">=</span> (abstol <span class="op">=</span> <span class="fl">1.0e-12</span>, reltol <span class="op">=</span> <span class="fl">1.0e-08</span>, dtmax <span class="op">=</span> <span class="fl">0.001</span>τ)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    options <span class="op">=</span> <span class="fu">merge</span>(defaults, kwargs)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    u0 <span class="op">=</span> [model.m <span class="op">=&gt;</span> m, model.Y <span class="op">=&gt;</span> Y, model.θ̇ <span class="op">=&gt;</span> Θ̇]</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    prob <span class="op">=</span> <span class="fu">ODEProblem</span>(model, u0, (<span class="fl">0.0</span>, τ))</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">solve</span>(prob, solver; options<span class="op">...</span>)</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sensitivity-study" class="level2">
+<h2 class="anchored" data-anchor-id="sensitivity-study">Sensitivity study</h2>
+<p>Now it is time to play and perform a numerical experiment.</p>
+<p>This will insights about the effects of some parameters over the expected results.</p>
+<p>Use the variables below to select the value of:</p>
+<div id="f23a42da" class="cell" data-execution_count="24">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>θ̇user <span class="op">=</span> <span class="fl">20.0</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>huser <span class="op">=</span> <span class="fl">0.5</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="b48e4f21" class="cell" data-execution_count="25">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>sol, fig <span class="op">=</span> <span class="kw">let</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@info</span> <span class="st">"Computation running here..."</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Analysis heating rate.</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    Θ̇ <span class="op">=</span> θ̇user <span class="op">/</span> <span class="fl">60.0</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Kaolin humidity level.</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> huser <span class="op">/</span> <span class="fl">100.0</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Initial mass (same as Meinhold, 2001).</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> <span class="fl">16.0e-06</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Integration interval to simulate problem.</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    τ <span class="op">=</span> <span class="fl">1175.0</span> <span class="op">/</span> Θ̇</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Assembly array of initial states.</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>    Y <span class="op">=</span> [h, <span class="fl">1.0</span><span class="op">-</span>h, <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>]</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Call model solution routine.</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>    sol <span class="op">=</span> <span class="fu">solvemodel</span>(model, τ, Θ̇, m, Y)</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ... and plot results.</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>    fig <span class="op">=</span> <span class="fu">plotmodel</span>(model, sol)</span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>    sol, fig</span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>fig</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre><span class="ansi-cyan-fg ansi-bold">[ </span><span class="ansi-cyan-fg ansi-bold">Info: </span>Computation running here...
+
+<span class="ansi-yellow-fg ansi-bold">┌ </span><span class="ansi-yellow-fg ansi-bold">Warning: </span>Found `resolution` in the theme when creating a `Scene`. The `resolution` keyword for `Scene`s and `Figure`s has been deprecated. Use `Figure(; size = ...` or `Scene(; size = ...)` instead, which better reflects that this is a unitless size and not a pixel resolution. The key could also come from `set_theme!` calls or related theming functions.
+
+<span class="ansi-yellow-fg ansi-bold">└ </span><span class="ansi-bright-black-fg">@ Makie C:\Working\kompanion\.julia\packages\Makie\Vn16E\src\scenes.jl:264</span>
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<div>
+<figure class="figure">
+<p><img src="julia-materials-kinetics_files/figure-html/cell-25-output-2.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>An advantage of using observables in the model is the post-processing capactities it offers. All observables are stored in memory together with problem solution. If expected solution is too large, it is important to really think about what should be included as an observable for memory reasons.</p>
+<p>Below we illustrate the mixture specific heat extracted from the observables.</p>
+<div id="c1523c25" class="cell" data-execution_count="26">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with_theme</span>() <span class="cf">do</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    T <span class="op">=</span> sol[model.T] <span class="op">.-</span> <span class="fl">273.15</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    c <span class="op">=</span> sol[model.c] <span class="op">./</span> <span class="fl">1000</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">500</span>, <span class="fl">350</span>))</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> <span class="fu">Axis</span>(f[<span class="fl">1</span>, <span class="fl">1</span>])</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, T, c; color <span class="op">=</span> <span class="op">:</span>black)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    ax.ylabel <span class="op">=</span> <span class="st">"Specific heat [kJ/(kg.K)]"</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    ax.xlabel <span class="op">=</span> <span class="st">"Temperature [°C]"</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    ax.xticks <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">100</span><span class="op">:</span><span class="fl">1200</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    ax.yticks <span class="op">=</span> <span class="fl">0.6</span><span class="op">:</span><span class="fl">0.1</span><span class="op">:</span><span class="fl">1.4</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlims!</span>(ax, (<span class="fl">0</span>, <span class="fl">1200</span>))</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ylims!</span>(ax, (<span class="fl">0.6</span>, <span class="fl">1.4</span>))</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>    f</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<div>
+<figure class="figure">
+<p><img src="julia-materials-kinetics_files/figure-html/cell-26-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Hope these notes provided you insights on DSC/TGA methods!</p>
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-Eskelinen2015" class="csl-entry" role="listitem">
+Eskelinen, Aleksi, Alexey Zakharov, Sirkka‐Liisa Jämsä‐Jounela, and Jonathan Hearle. 2015. <span>“Dynamic Modeling of a Multiple Hearth Furnace for Kaolin Calcination.”</span> <em>AIChE Journal</em> 61 (11): 3683–98. <a href="https://doi.org/10.1002/aic.14903">https://doi.org/10.1002/aic.14903</a>.
+</div>
+<div id="ref-Holm2001" class="csl-entry" role="listitem">
+Holm, Jan L. 2001. <span>“Kaolinites–Mullite Transformation in Different <span>Al2O3–SiO2</span> Systems: Thermo-Analytical Studies.”</span> <em>Physical Chemistry Chemical Physics</em> 3 (7): 1362–65. <a href="https://doi.org/10.1039/B010031P">https://doi.org/10.1039/B010031P</a>.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
