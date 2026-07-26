@@ -1,0 +1,75 @@
+---
+title: Thermal analysis simulation
+author: Walter Dal'Maz Silva
+date: today
+execute:
+  cache: true
+  echo: false
+format:
+  html:
+    theme: default
+  typst:
+    margin: {x: 2.5cm, top: 3.0cm, bottom: 2.0cm}
+    logo:
+      path: _assets/logo.svg
+      width: 5cm
+      location: right top
+      padding: 10mm
+    fontsize: 12pt
+    linestretch: 1.25
+    fig-format: png
+    fig-dpi: 300
+engine: julia
+execute-dir: file
+julia:
+  project: ./julia-shared/
+  exeflags: ["--project=./julia-shared/"]
+---
+
+In this note we investigate the right implementation to reproduce the kinetics of kaolinite calcination reported by Eskelinen *et al.* [Eskelinen2015](@cite). Neither their model nor their references properly provide the concentration units used in the rate laws, so that becomes an issue when trying to reproduce the results. Here we derive the equations for a complete mass and energy balance to simulate a coupled DSC/TGA analysis of the material in with different concentration units in the rate laws.
+
+```{julia}
+using Pkg
+Pkg.activate(joinpath(@__DIR__,"julia-shared"))
+
+push!(LOAD_PATH, joinpath(@__DIR__, "scripts"))
+using AuChimiste
+
+using CairoMakie
+using DifferentialEquations
+using LinearAlgebra
+using ModelingToolkit
+using NumericalIntegration
+using Printf
+using Symbolics: scalarize
+using YAML
+```
+
+## Species properties
+
+In what follows the condensate species will be indexed as the next list, so for simplifying notation species will be referred to solely by their index.
+
+1. Liquid water
+1. Kaolinite $Al_2Si_2O_5(OH)_4$
+1. Metakaolin $Al_2Si_2O_7$
+1. *Spinel* $Al_4Si_3O_{12}$
+1. Amorphous silica $SiO_2$
+
+Final conversion of spinel into mullite and cristobalite is neglected here.
+
+Polynomials for specific heat are those of Schieltz and Soliman [Schieltz1964](@cite), except for *spinel* phase for which at the time of the publication was unknown. A rough estimate of its value is provided by Eskelinen *et al.* [Eskelinen2015](@cite). Since this phase is the least relevant in the present study and the  order of magnitude seems correct, it is employed in the simulations.
+
+Below we start by loading the database and displaying the species table:
+
+```{julia}
+# Use built-in database:
+tdb = AuChimisteDatabase(; selected_species = [
+    "WATER_L",
+    "KAOLINITE",
+    "METAKAOLIN",
+    "SIO2_GLASS",
+    "SPINEL",
+])
+
+AuChimiste.speciestable(tdb)
+```
