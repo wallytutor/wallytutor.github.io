@@ -140,6 +140,33 @@ species:
         ]
     note: https://webbook.nist.gov/cgi/cbook.cgi?ID=C1305788&Mask=2#Thermo-Condensed
 
+  - name: KAOLINITE
+    display_name: Kaolinite
+    aggregation: solid
+    data_source: SCHIELTZ1964
+    composition:
+      Al: 2
+      Si: 2
+      O : 9
+      H : 4
+    thermo:
+      model: MAIERKELLEY
+      data:
+        - [57.47, 35.30e-03, -7.87e+05, -964940.0, 40.50]
+
+  - name: METAKAOLIN
+    display_name: Metakaolin
+    aggregation: solid
+    data_source: SCHIELTZ1964
+    composition:
+      Al: 2
+      Si: 2
+      O : 7
+    thermo:
+      model: MAIERKELLEY
+      data:
+        - [54.85, 8.80e-03, -3.48e+05, -767500.0, 32.78]
+
   - name: SIO2_ALPHA
     display_name: SiO2 (alpha quartz)
     aggregation: solid
@@ -194,6 +221,18 @@ species:
       https://webbook.nist.gov/cgi/cbook.cgi?ID=C14808607&Mask=2#Thermo-Condensed
       s298 converted from SCHIELTZ1968
 
+  - name: SIO2_GLASS
+    display_name: SiO2 (glass)
+    aggregation: solid
+    data_source: SCHIELTZ1964
+    composition:
+      Si: 1
+      O : 2
+    thermo:
+      model: MAIERKELLEY
+      data:
+        - [13.38, 3.68e-03, -3.45e+05, -202000.0, 10.06]
+
   - name: CA1O1_L
     display_name: Calcium oxide
     aggregation: liquid
@@ -231,6 +270,32 @@ species:
       model: MAIERKELLEY
       data:
         - [50.0, 0.0, 0.0, -100000.0, 30.0]
+
+  - name: WATER_L
+    display_name: Water (liquid)
+    aggregation: liquid
+    data_source: SCHIELTZ1964
+    composition:
+      H : 2
+      O : 1
+    thermo:
+      model: MAIERKELLEY
+      data:
+        - [18.03, 0.0, 0.0, -68320.0, 16.72]
+    note: |
+      N/A
+
+  - name: WATER_G
+    display_name: Water (gas)
+    aggregation: gas
+    data_source: SCHIELTZ1964
+    composition:
+      H : 2
+      O : 1
+    thermo:
+      model: MAIERKELLEY
+      data:
+        - [7.17, 2.56e-03, 0.08e+05, -57800.0, 45.13]
 
 ##############################################################################
 # REACTIONS

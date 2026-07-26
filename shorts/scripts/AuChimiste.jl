@@ -12,6 +12,32 @@ using StaticArrays: SVector, SMatrix
 import YAML
 
 export AuChimisteDatabase
+export Stoichiometry, MoleProportion, MassProportion, @component
+
+#region: common
+function heaviside(T, T₀)
+    return 1//2 * (sign(T - T₀) + 1)
+end
+
+function heaviside(T, T₀, k)
+    return 1//2 * (tanh(k * (T - T₀)) + 1)
+end
+
+function cumtrapz(X::T, Y::T) where {T <: AbstractVector}
+    @assert length(X) == length(Y)
+
+    out = similar(X)
+    out[1] = 0
+
+    for i in 2:length(X)
+        h = X[i] - X[i-1]
+        B = Y[i] + Y[i-1]
+        out[i] = out[i-1] + h * B / 2
+    end
+
+    return out
+end
+#endregion: common
 
 #region: interfaces
 abstract type ChemicalException       <: Exception end
@@ -587,11 +613,10 @@ specification methods:
 - `MoleProportion`: molar proportions of elements
 - `MassProportion`: mass proportions of elements
 """
-@enum CompositionTypes begin
-    Stoichiometry
-    MoleProportion
-    MassProportion
-end
+abstract type CompositionType end
+struct Stoichiometry <: CompositionType end
+struct MoleProportion <: CompositionType end
+struct MassProportion <: CompositionType end
 
 """
 Creates a typed composition specification for later construction of
@@ -605,7 +630,7 @@ Fields
 ======
 $(TYPEDFIELDS)
 """
-struct Composition{T}
+struct Composition{T <: CompositionType}
     "Tuple of elements and their amounts."
     data::NamedTuple
 
@@ -615,7 +640,7 @@ struct Composition{T}
     function Composition{T}(;
             scale::Union{Nothing, Pair{Symbol, <:Number}} = nothing,
             kw...
-        ) where T
+        ) where T <: CompositionType
         # Empty composition keywords is unacceptable:
         isempty(kw) && throw(EmptyCompositionError())
 
@@ -680,9 +705,19 @@ macro component(func, comp, charge)
 end
 
 function component(spec::Symbol; charge = 0, kw...)
-    valid = [:stoichiometry, :mole_proportions, :mass_proportions]
-    spec in valid || error("Invalid composition specification $(spec)")
-    c = getfield(AuChimiste, spec)(; kw...)
+    if spec === :stoichiometry
+        return component(Stoichiometry; charge, kw...)
+    elseif spec === :mole_proportions
+        return component(MoleProportion; charge, kw...)
+    elseif spec === :mass_proportions
+        return component(MassProportion; charge, kw...)
+    else
+        error("Invalid composition specification $(spec)")
+    end
+end
+
+function component(::Type{T}; charge = 0, kw...) where {T <: CompositionType}
+    c = Composition{T}(; kw...)
     return component(c, charge)
 end
 
@@ -1167,65 +1202,115 @@ end
 # struct MaierKelleyThermo <: AbstractThermodynamicData end
 # struct EinsteinThermo <: AbstractThermodynamicData end
 
-function factory_symbolic(data::ThermoData{K, N, M}, properties) where {K, N, M}
-    @variables T
+# Helper functions for unified numeric and symbolic evaluation
+function symbolic_eval(model::AbstractThermodynamicData, T_sym, properties_maker)
+    bounds = model.data.bounds
+    N = length(bounds) - 1
+    K = size(model.data.params, 1)
+    coefs = model.data.params
 
-    jumps = data.bounds[1:N]
-    coefs = data.params
-
-    funs = properties(T, SVector{K}(coefs[1:end, 1]))
+    funs = properties_maker(T_sym, SVector{K}(coefs[:, 1]))
     fun_cp, fun_hm, fun_sm = funs
 
-    for k in range(2, N)
-        δ = heaviside(T, jumps[k])
+    for k in 2:N
+        δ = heaviside(T_sym, bounds[k])
 
-        funs = properties(T, SVector{K}(coefs[1:end, k]))
+        funs = properties_maker(T_sym, SVector{K}(coefs[:, k]))
         new_cp, new_hm, new_sm = funs
 
         Δcp = simplify(new_cp - fun_cp; expand = true)
         Δhm = simplify(new_hm - fun_hm; expand = true)
-        Δsm = simplify(new_sm - fun_hm; expand = true)
+        Δsm = simplify(new_sm - fun_sm; expand = true) # Fixed legacy bug (subtracted fun_hm instead of fun_sm)
 
         fun_cp += δ * Δcp
         fun_hm += δ * Δhm
         fun_sm += δ * Δsm
     end
 
-    # XXX: this is producing identically zero results in some cases
-    # for Shomate models of specific heat and entropy. Why? Probably
-    # due to some overflow due to the T/1000 factor. Keep this note
-    # as this is a weak point of the implementation. It was also
-    # observed that this breaks the management of the heaviside
-    # intended behavior.
-    # fun_cp = simplify(fun_cp; expand = true)
-    # fun_hm = simplify(fun_hm; expand = true)
-    # fun_sm = simplify(fun_sm; expand = true)
-
     return fun_cp, fun_hm, fun_sm
 end
 
-function factory_symbolic(m::NASAThermo{K, N}) where {K, N}
-    factory_symbolic(m.data, properties_nasa)
+function evaluate_property(model::AbstractThermodynamicData, T, prop_idx, properties_maker)
+    if T isa Symbolics.Num
+        # Symbolic evaluation
+        funcs = symbolic_eval(model, T, properties_maker)
+        return funcs[prop_idx]
+    else
+        # Numeric evaluation
+        bounds = model.data.bounds
+        N = length(bounds) - 1
+        if THERMO_WARNINGS && (T < bounds[1] || T > bounds[end])
+            @warn "Temperature $(T) K is out of bounds [$(bounds[1]), $(bounds[end])] for $(typeof(model))"
+        end
+        T_clamped = clamp(T, bounds[1], bounds[end])
+        idx = searchsortedfirst(SVector(bounds), T_clamped) - 1
+        idx = max(1, min(idx, N))
+
+        K = size(model.data.params, 1)
+        c = SVector{K}(model.data.params[:, idx])
+
+        funcs = properties_maker(T_clamped, c)
+        return funcs[prop_idx]
+    end
 end
 
-function factory_symbolic(m::ShomateThermo{K, N}) where {K, N}
-    factory_symbolic(m.data, properties_shomate)
+function specific_heat_mole(m::NASAThermo, T)
+    return evaluate_property(m, T, 1, properties_nasa)
 end
 
-function factory_symbolic(m::MaierKelleyThermo{K, N}) where {K, N}
-    factory_symbolic(m.data, properties_maierkelley)
+function enthalpy_mole(m::NASAThermo, T)
+    return evaluate_property(m, T, 2, properties_nasa)
 end
 
-function factory_numeric(m::NASAThermo{K, N}) where {K, N}
-    error("not implemented")
+function entropy_mole(m::NASAThermo, T)
+    return evaluate_property(m, T, 3, properties_nasa)
 end
 
-function factory_numeric(m::ShomateThermo{K, N}) where {K, N}
-    error("not implemented")
+function specific_heat_mole(m::ShomateThermo, T)
+    return evaluate_property(m, T, 1, properties_shomate)
 end
 
-function factory_numeric(m::MaierKelleyThermo{K, N}) where {K, N}
-    error("not implemented")
+function enthalpy_mole(m::ShomateThermo, T)
+    return evaluate_property(m, T, 2, properties_shomate)
+end
+
+function entropy_mole(m::ShomateThermo, T)
+    evaluate_property(m, T, 3, properties_shomate)
+end
+
+function specific_heat_mole(m::MaierKelleyThermo, T)
+    evaluate_property(m, T, 1, properties_maierkelley)
+end
+
+function enthalpy_mole(m::MaierKelleyThermo, T)
+    evaluate_property(m, T, 2, properties_maierkelley)
+end
+
+function entropy_mole(m::MaierKelleyThermo, T)
+    evaluate_property(m, T, 3, properties_maierkelley)
+end
+
+function factory_symbolic(m::NASAThermo)
+    @variables T
+    symbolic_eval(m, T, properties_nasa)
+end
+
+function factory_symbolic(m::ShomateThermo)
+    @variables T
+    symbolic_eval(m, T, properties_shomate)
+end
+
+function factory_symbolic(m::MaierKelleyThermo)
+    @variables T
+    symbolic_eval(m, T, properties_maierkelley)
+end
+
+function factory_numeric(m::AbstractThermodynamicData)
+    return (
+        T -> specific_heat_mole(m, T),
+        T -> enthalpy_mole(m, T),
+        T -> entropy_mole(m, T)
+    )
 end
 
 function thermo_models()
@@ -1279,7 +1364,9 @@ function thermo_factory(; model, data, bounds, how = :symbolic)
 end
 
 function compile_function(f, expression)
-    build_function(f, Symbolics.get_variables(f); expression)
+    vars = collect(Symbolics.get_variables(f))
+    var = isempty(vars) ? (@variables T; T) : first(vars)
+    build_function(f, var; expression)
 end
 
 struct CompiledThermoFunctions
@@ -1323,8 +1410,8 @@ struct Thermodynamics <: AbstractThermodynamicsModel
         data = thermo_data(; thermo...)
         base = thermo_factory(data; how)
         func = CompiledThermoFunctions(base)
-        h298 = func.enthalpy(298.15)
-        s298 = func.entropy(298.15)
+        h298 = enthalpy_mole(data, 298.15)
+        s298 = entropy_mole(data, 298.15)
         return new(data, base, func, h298, s298)
     end
 end
@@ -1372,15 +1459,15 @@ function formation_enthalpy(s::Species)
 end
 
 function specific_heat_mole(s::Species, T)
-    return s.thermo.func.specific_heat(T)
+    return specific_heat_mole(s.thermo.data, T)
 end
 
 function enthalpy_mole(s::Species, T)
-    return s.thermo.func.enthalpy(T)
+    return enthalpy_mole(s.thermo.data, T)
 end
 
 function entropy_mole(s::Species, T)
-    return s.thermo.func.entropy(T)
+    return entropy_mole(s.thermo.data, T)
 end
 
 # WIP: enthalpy calculation for use in Hess' law [J/mol].
@@ -1469,10 +1556,10 @@ function validatedatabase(data)
     isnothing(spec) && return false
 
     if !isnothing(refs) && !all(c->validatereference(c, refs), spec)
+        @warn("Cannot validate references: not available")
         return false
     end
 
-    @warn("Cannot validate references: not available")
     true
 end
 
