@@ -2,6 +2,7 @@
 title: Thermal analysis simulation
 author: Walter Dal'Maz Silva
 date: today
+bibliography: _assets/references.bib
 execute:
   cache: true
   echo: false
@@ -26,17 +27,21 @@ julia:
   exeflags: ["--project=./julia-shared/"]
 ---
 
-In this note we investigate the right implementation to reproduce the kinetics of kaolinite calcination reported by Eskelinen *et al.* [Eskelinen2015](@cite). Neither their model nor their references properly provide the concentration units used in the rate laws, so that becomes an issue when trying to reproduce the results. Here we derive the equations for a complete mass and energy balance to simulate a coupled DSC/TGA analysis of the material in with different concentration units in the rate laws.
+In this note we investigate the right implementation to reproduce the kinetics of kaolinite calcination reported by @Eskelinen2015. Neither their model nor their references properly provide the concentration units used in the rate laws, so that becomes an issue when trying to reproduce the results. Here we derive the equations for a complete mass and energy balance to simulate a coupled DSC/TGA analysis of the material in with different concentration units in the rate laws.
 
 ```{julia}
+#| echo: true
 using Pkg
-Pkg.activate(joinpath(@__DIR__, "julia-shared"))
+open("pkg_init.log", "w") do log
+    Pkg.activate(joinpath(@__DIR__, "julia-shared"); io=log)
+end
 
 push!(LOAD_PATH, joinpath(@__DIR__, "scripts"))
 using AuChimiste
 
 using CairoMakie
 using DifferentialEquations
+using Latexify
 using LinearAlgebra
 using ModelingToolkit
 using NumericalIntegration
@@ -62,6 +67,7 @@ Polynomials for specific heat are those of Schieltz and Soliman [Schieltz1964](@
 Below we start by loading the database and displaying the species table:
 
 ```{julia}
+#| echo: true
 # Use built-in database:
 tdb = AuChimisteDatabase(; selected_species = [
     "WATER_L",
@@ -77,6 +83,7 @@ AuChimiste.speciestable(tdb)
 Because the mechanism assumes a given species indexing, we enforce it below:
 
 ```{julia}
+#| echo: true
 # Materials for considered phases as indexed:
 const materials = [
     tdb.species.WATER_L
@@ -87,12 +94,13 @@ const materials = [
 ]
 
 # Molecular masses of considered phases [kg/mol]:
-const W = map(AuChimiste.molar_mass, materials)
+const W = map(AuChimiste.molar_mass, materials);
 ```
 
 Computing mixture properties (specific heat) makes use of this indexing too:
 
 ```{julia}
+#| echo: true
 "Mass weighted mixture specific heat [J/(kg.K)]"
 function mixturespecificheat(T, Y)
     # Retrieve specific heat for all species as stated above:
@@ -146,6 +154,7 @@ Mass loss through evaporation and dehydroxylation is handled separately because 
 Sample mass loss is then simply $\dot{m}=\eta\cdotp{}rM_1$, where $M_1$ is water molecular mass so that the expression is given in $kg\cdotp{}s^{-1}$.
 
 ```{julia}
+#| echo: true
 # Solid state stoichiometric coefficients
 const ν = [
     -1  0  0;
@@ -160,18 +169,16 @@ const η = [1 2 0];
 ```
 
 ```{julia}
+#| echo: true
 "Species net production rate [kg/s]"
-function netproductionrates(r)
-    return diagm(W) * (ν * r)
-end;
+netproductionrates(r) = diagm(W) * (ν * r);
 ```
 
 ```{julia}
+#| echo: true
 "Sample mass loss rate [kg/s]"
-function masslossrate(r)
-    # return -1 * (η * r) * W[1]
-    return -1 * sum(η[i] * r[i] for i in 1:3) * W[1]
-end;
+masslossrate(r) = -1 * sum(η[i] * r[i] for i in 1:3) * W[1];
+# -1 * (η * r) * W[1]
 ```
 
 ## Balance equations
@@ -199,10 +206,9 @@ $$
 which is the form we will implement here. Notice that the computation of $\dot{m}$ is already provided by `masslossrate` and $\dot{\omega}$ by `netproductionrates` so we can use the results of those evaluations in the following balance equation:
 
 ```{julia}
+#| echo: true
 "Compute balance equation for species with varying system mass."
-function speciesbalance(ṁ, ω̇, m, Y)
-    return (1 / m) * (ω̇ - Y .* ṁ)
-end;
+speciesbalance(ṁ, ω̇, m, Y) = (1 / m) * (ω̇ - Y .* ṁ);
 ```
 
 ## Reaction kinetics
@@ -216,40 +222,34 @@ r_{i} = k_i(T)n_r=k_i(T)\frac{m_r}{M_r}=k_i(T)\frac{Y_r}{M_r}m
 $$
 
 ```{julia}
+#| echo: true
 "Rate constant pre-exponential factor [1/s]."
 const A = [5.0000e+07; 1.0000e+07; 5.0000e+33];
-```
 
-```{julia}
 "Reaction rate activtation energies [J/(mol.K)]."
 const E = [6.1000e+04; 1.4500e+05; 8.5600e+05];
-```
 
-```{julia}
 "Reaction enthalpies per unit mass of reactant [J/kg]."
 const ΔH = [2.2582e+06; 8.9100e+05; -2.1290e+05];
 ```
 
 ```{julia}
+#| echo: true
 "Evaluate rate constants [1/s]."
-function rateconstants(T)
-    return A .* exp.(-E ./ (AuChimiste.GAS_CONSTANT * T))
-end;
+rateconstants(T) = A .* exp.(-E ./ (AuChimiste.GAS_CONSTANT * T));
 ```
 
 ```{julia}
+#| echo: true
 "Compute reaction rates [mol/s]."
-function reactionrates(m, T, Y)
-    k = rateconstants(T)
-    r = m * k .* Y[1:3] ./ W[1:3]
-    return scalarize(r)
-end;
+reactionrates(m, T, Y) = m * rateconstants(T) .* Y[1:3] ./ W[1:3];
 ```
 
 ```{julia}
+#| echo: true
 "Total heat release rate for reactions [J/kg]."
-heatrelease(r) = (r .* W[1:3])' * ΔH;
-# heatrelease(r) = sum(r[i] * W[i] * ΔH[i] for i in 1:3);
+# heatrelease(r) = (r .* W[1:3])' * ΔH;
+heatrelease(r) = sum(r[i] * W[i] * ΔH[i] for i in 1:3);
 ```
 
 ## Experimental controls
@@ -257,6 +257,7 @@ heatrelease(r) = (r .* W[1:3])' * ΔH;
 To wrap-up we provide the programmed thermal cycle and the computation of required heat input to produce a perfect heating curve. It must be emphasized that actual DSC machines use some sort of controllers to reach this, what introduces one source of stochastic behavior to the measurement.
 
 ```{julia}
+#| echo: true
 "Thermal cycle to apply to sample."
 temperature(t, θ̇; T₀ = 298.15) = T₀ + θ̇ * t
 
@@ -277,7 +278,10 @@ There are a few different types of quantities here:
 
 Because of how a DSC analysis is conducted, it was chosen that the only model parameter should be the heating rate $θ̇$. Furthermore, all other quantities were encoded in the developed functions.
 
+Below we present the domain-specific language implementation of the model:
+
 ```{julia}
+#| echo: true
 @independent_variables t
 D = Differential(t)
 
@@ -311,13 +315,16 @@ D = Differential(t)
 
         T ~ temperature(t, θ̇)
         c ~ mixturespecificheat(T, Y)
-        ḣ ~ scalarize(heatrelease(r))
+        ḣ ~ heatrelease(r)
         q̇ ~ heatinput(m, c, θ̇, ḣ)
     end
-end
+end;
 ```
 
+Alternatively, it could also be created in a functional form as:
+
 ```{julia}
+#| echo: true
 "Model creation routine."
 function thermal_analysis(; name)
     @independent_variables t
@@ -367,38 +374,40 @@ Below we instantiate the model.
 We observed the expanded form with all variables and observables:
 
 ```{julia}
-# @named analysis = ThermalAnalysis()
-@named analysis = thermal_analysis()
+#| echo: true
+# @named analysis = ThermalAnalysis();
+@named analysis = thermal_analysis();
 ```
 
 For solution is is necessary to simplify this system to the equations that really are integrated. Using `structural_simplify` we reach this goal.
 
 ```{julia}
+#| echo: true
 model = structural_simplify(analysis);
 ```
 
 Now we can get the actual `equations`:
 
 ```{julia}
+#| echo: true
 equations(model)
 ```
 
 ```{julia}
+#| echo: true
 unknowns(model)
 ```
 
 ... and the `observed` quantities.
 
 ```{julia}
-observed(model)
+#| echo: true
+# observed(model)
 ```
 
-## Solution utilities
-
-To make problem solution and visualization simple we provide the following utilities.
-
-
 ```{julia}
+#| label: utilities-1
+#| echo: true
 """
     plotmodel(model, sol)
 
@@ -424,7 +433,7 @@ function plotmodel(model, sol)
 
     δH = 1e-06cumul_integrate(tk, 1000DSC)
 
-    f = Figure(size = (700, 700))
+    f = Figure(size = (500, 500))
 
     ax1 = Axis(f[1, 1])
     ax2 = Axis(f[2, 1])
@@ -442,7 +451,8 @@ function plotmodel(model, sol)
 
     axislegend(ax1; position = :ct, orientation = :horizontal)
     axislegend(ax2; position = :rt, orientation = :horizontal)
-    axislegend(ax3, [l3, l4], ["DSC", "ΔH"], position = :lt, orientation = :horizontal)
+    axislegend(ax3, [l3, l4], ["DSC", "ΔH"], position = :lt,
+              orientation = :horizontal)
 
     ax1.ylabel = "Mass content [%]"
     ax2.ylabel = "Residual mass [%]"
@@ -478,6 +488,8 @@ end;
 ```
 
 ```{julia}
+#| label: utilities-2
+#| echo: true
 """
     solvemodel(model, τ, Θ̇, m₀, Y₀)
 
@@ -503,11 +515,13 @@ This will insights about the effects of some parameters over the expected result
 Use the variables below to select the value of:
 
 ```{julia}
+#| echo: true
 θ̇user = 20.0
 huser = 0.5;
 ```
 
 ```{julia}
+#| echo: true
 sol, fig = let
     @info "Computation running here..."
 
@@ -543,11 +557,12 @@ An advantage of using observables in the model is the post-processing capactitie
 Below we illustrate the mixture specific heat extracted from the observables.
 
 ```{julia}
+#| echo: true
 with_theme() do
     T = sol[model.T] .- 273.15
     c = sol[model.c] ./ 1000
 
-    f = Figure(size = (700, 350))
+    f = Figure(size = (500, 350))
     ax = Axis(f[1, 1])
     lines!(ax, T, c; color = :black)
 
@@ -564,3 +579,10 @@ end
 ```
 
 Hope these notes provided you insights on DSC/TGA methods!
+
+## Solution utilities
+
+To make problem solution and visualization simple we provide the following utilities.
+
+{{< contents utilities-1 >}}
+{{< contents utilities-2 >}}
