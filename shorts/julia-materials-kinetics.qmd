@@ -218,7 +218,11 @@ speciesbalance(ṁ, ω̇, m, Y) = (1 / m) * (ω̇ - Y .* ṁ);
 For such a global approach we do not have the privilege of working with actual concentrations because the mass distribution in the system is unknown and it would be meaningless to work with specific masses. Thus, assume the reaction rates are proportional to the number of moles of the reacting species $n_r$ so we get the required units as exposed above. Then the $r_i$ can be expressed as
 
 $$
-r_{i} = k_i(T)n_r=k_i(T)\frac{m_r}{M_r}=k_i(T)\frac{Y_r}{M_r}m
+\begin{aligned}
+r_{i} &= k_i(T)n_r \\[12pt]
+      &= k_i(T)\frac{m_r}{M_r} \\[12pt]
+      &= k_i(T)\frac{Y_r}{M_r}m
+\end{aligned}
 $$
 
 ```{julia}
@@ -369,9 +373,7 @@ function thermal_analysis(; name)
 end;
 ```
 
-Below we instantiate the model.
-
-We observed the expanded form with all variables and observables:
+Below we instantiate the model. We observe the expanded form with all variables and observables (remove the semi-colon to see):
 
 ```{julia}
 #| echo: true
@@ -398,12 +400,17 @@ equations(model)
 unknowns(model)
 ```
 
-... and the `observed` quantities.
+... and the `observed` quantities (uncomment to inspect).
 
 ```{julia}
 #| echo: true
 # observed(model)
 ```
+
+## Solution utilities
+
+To make problem solution and visualization simple we provide the following utilities.
+
 
 ```{julia}
 #| label: utilities-1
@@ -433,7 +440,7 @@ function plotmodel(model, sol)
 
     δH = 1e-06cumul_integrate(tk, 1000DSC)
 
-    f = Figure(size = (500, 500))
+    f = Figure(size = (500, 700))
 
     ax1 = Axis(f[1, 1])
     ax2 = Axis(f[2, 1])
@@ -579,10 +586,3 @@ end
 ```
 
 Hope these notes provided you insights on DSC/TGA methods!
-
-## Solution utilities
-
-To make problem solution and visualization simple we provide the following utilities.
-
-{{< contents utilities-1 >}}
-{{< contents utilities-2 >}}
