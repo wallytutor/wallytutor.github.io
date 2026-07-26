@@ -2,6 +2,7 @@
 title: AuChimiste Tutorial
 author: Walter Dal'Maz Silva
 date: today
+bibliography: _assets/references.bib
 execute:
   cache: true
   echo: false
@@ -73,30 +74,35 @@ AC.has_element(:D)
 It is possible to retrieve the `atomic_mass`. Other data retrieval functions include `atomic_number` and `element_name`. All of these work with both string and symbols.
 
 ```{julia}
+#| echo: true
 AC.atomic_mass(:C), AC.atomic_number(:C), AC.element_name(:C)
 ```
 
 Getting the whole `element` data can be achieved at once as follows:
 
 ```{julia}
+#| echo: true
 AC.element(:Cl)
 ```
 
 In this case is also possible to query the data through the atomic number:
 
 ```{julia}
+#| echo: true
 AC.element(26)
 ```
 
 On the other hand atomic masses of unstable elements are not accessible:
 
 ```{julia}
+#| echo: true
 try AC.atomic_mass(:Po) catch e; @error(e) end
 ```
 
 To have an unstable element listed, you need to [`add_isotope`](@ref) before. For instance, let's add [Po-187](https://en.wikipedia.org/wiki/Isotopes_of_polonium) to the database.
 
 ```{julia}
+#| echo: true
 AC.add_isotope(:Po, 187.003030)
 ```
 
@@ -105,24 +111,28 @@ AC.add_isotope(:Po, 187.003030)
 Component creation is a trivial task with `AuChimiste`. All you need to do is call `component` with one of the available composition specification methods and a list of keyword arguments representing the element amounts to use. For instance, to create aluminum oxide from its stoichiometry one does:
 
 ```{julia}
+#| echo: true
 A = AC.component(:stoichiometry; Al=2, O=3)
 ```
 
 The above is a syntactic sugar to providing a [`stoichiometry`](@ref) as argument. Please notice that this form requires the overall charge of the component to be specified.
 
 ```{julia}
-A = component(stoichiometry(Al=2, O=3), 0)
+#| echo: true
+A = AC.component(AC.stoichiometry(Al=2, O=3), 0)
 ```
 
 The other composition specification methods are `mass_proportions` and `mole_proportions`. Let' s see their use in a more elaborate example with naphthalene ``C_{10}H_{8}``:
 
 ```{julia}
+#| echo: true
 naphtalene = AC.component(:stoichiometry; C=10, H=8)
 ```
 
 So far nothing new. We can use `mass_fractions_map` and `mole_fractions_map` to retrieve the named-tuples of compositions in the units provided by these functions:
 
 ```{julia}
+#| echo: true
 Y = AC.mass_fractions_map(naphtalene)
 X = AC.mole_fractions_map(naphtalene)
 Y, X
@@ -131,19 +141,22 @@ Y, X
 Using the mass fractions `Y` one can create the equivalent compound from this sort of input. Notice here that a scale is provided to enforce the stoichiometric coefficient of carbon in the species (there is no way to infer it simply from elemental mass fractions).
 
 ```{julia}
+#| echo: true
 m_y = AC.component(:mass_proportions; Y..., scale=:C=>10)
 ```
 
 The same can be done using mole fractions, as follows:
 
 ```{julia}
+#| echo: true
 m_x = AC.component(:mole_proportions; X..., scale=:C=>10)
 ```
 
 If scaling is not provided, the default behavior is enforced, applying unit content to the first element provided in the composition tuple. Notice that these constructors do not sort arguments. This behavior is intended so that compounds can be easily understood by the user in the case a standard formula format exists (as for the oxides above).
 
 ```{julia}
-component(:mole_proportions; X...)
+#| echo: true
+AC.component(:mole_proportions; X...)
 ```
 
 Finally, by *proportions* instead of *fractions* in the name of the composition specification methods we mean that internal normalization is performed. That might be useful, for instance, for reverse-engineering a compound formula from an analysis report.
@@ -151,6 +164,7 @@ Finally, by *proportions* instead of *fractions* in the name of the composition 
 Often in the field of combustion of heavy-fuel oils one is confronted with empirical fuel compositions given in mass percentages. Assume the following composition; playing with the scaling factor an engineer could infer a candidate composition and identify the family of the fuel [@Lawn1987].
 
 ```{julia}
+#| echo: true
 AC.component(:mass_proportions; C = 93.2, H = 6.3, O = 0.3, scale=:C=>10)
 ```
 
@@ -161,6 +175,7 @@ Some algebraic manipulation is also possible with `ChemicalComponent` instances.
 Below we create a component `C` for calcium oxide (notice that `C` here was chosen as per industry jargon, it has nothing to do with carbon) and create the multiples of the base oxides (using an extension of `Base.:*`) before combining them through addition (again, by extending `Base.:+` operator).
 
 ```{julia}
+#| echo: true
 A = AC.component(:stoichiometry; Al=2, O=3)
 C = AC.component(:stoichiometry; Ca=1, O=1)
 
@@ -174,6 +189,7 @@ All operations performed over `ChemicalComponent` instances are defined on stoic
 Subtraction operation (`Base.:-`) is also possible, but there are many conditions under which it could fail and it was chosen by design that a negative composition should return the mass imbalance instead, *i.e.* what lacks in `A` to be subtracted `C` and still return a valid component.
 
 ```{julia}
+#| echo: true
 A = AC.component(:stoichiometry; Al=2, O=3)
 C = AC.component(:stoichiometry; Ca=1, O=1)
 A - C
@@ -182,6 +198,7 @@ A - C
 On the other hand, if the left component has *enough* of what is being subtracted by the right component, then the actual resulting component is returned:
 
 ```{julia}
+#| echo: true
 C12A7 - C
 ```
 
@@ -190,6 +207,7 @@ C12A7 - C
 For the sake of generality, charged components are also supported. This is required so that ions can be considered in reactions. For instance, to create a sodium chloride formula one can proceed as follows:
 
 ```{julia}
+#| echo: true
 Na₊ = AC.component(:stoichiometry; charge=+1, Na=1)
 Cl₋ = AC.component(:stoichiometry; charge=-1, Cl=1)
 
@@ -199,12 +217,14 @@ NaCl = Na₊ + Cl₋
 The user must be aware of a few caveats; first, molecular mass is not corrected for the missing/extra electrons. Electron and mass balance are handled separately, as this makes more sense from a physical standpoint. Scaling of a component also scales its charge. This is required for proper balance of chemical equations.
 
 ```{julia}
+#| echo: true
 (3Na₊).charge
 ```
 
 So the formation of calcium hydroxide can be stated as:
 
 ```{julia}
+#| echo: true
 Ca₊₂ = AC.component(:stoichiometry; charge=+2, Ca=1)
 OH₋ = AC.component(:stoichiometry; charge=-1, O=1, H=1)
 
@@ -216,6 +236,7 @@ Ca₊₂ + 2OH₋
 An arbitrary amount of matter can be constructed with `quantity`. The resulting `ComponentQuantity` object supports both scaling (multiplication) and additive (summation) operations. A trivial example would be:
 
 ```{julia}
+#| echo: true
 3AC.quantity(A, 1.0)
 ```
 
@@ -226,6 +247,7 @@ On the other hand, operations performed on `ComponentQuantity` entities are scal
 Well, there is nothing special there, the mass was scaled by *three* with no composition change. The next example is maybe more instructive: we mix one mole of `A` with one mole of `C` by providing their molar masses as the mass of each component. This is interesting because one can quickly verify the correctness of the results.
 
 ```{julia}
+#| echo: true
 ma = AC.quantity(A, 0.001A.molar_mass)
 mc = AC.quantity(C, 0.001C.molar_mass)
 ma + mc
@@ -234,6 +256,7 @@ ma + mc
 Because in many situations one may be interested in mixing quantities directly, a wrapper is provided for eliminating the need of and explicit creation of a `component`.
 
 ```{julia}
+#| echo: true
 ma = AC.quantity(:stoichiometry, 1.0; Al=2, O=3)
 mc = AC.quantity(:stoichiometry, 1.0; Ca=1, O=1)
 ma + mc
