@@ -1,0 +1,27 @@
+---
+title: AuChimiste Tutorial
+author: Walter Dal'Maz Silva
+date: today
+execute:
+  cache: true
+  echo: false
+format:
+  html:
+    theme: default
+  typst:
+    margin: {x: 2.5cm, top: 3.0cm, bottom: 2.0cm}
+    logo:
+      path: _assets/logo.svg
+      width: 5cm
+      location: right top
+      padding: 10mm
+    fontsize: 12pt
+    linestretch: 1.25
+    fig-format: png
+    fig-dpi: 300
+engine: julia
+execute-dir: file
+julia:
+  project: ./julia-shared/
+  exeflags: ["--project=./julia-shared/"]
+---
