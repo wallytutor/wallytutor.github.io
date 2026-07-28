@@ -440,57 +440,64 @@ function plotmodel(model, sol)
 
     δH = 1e-06cumul_integrate(tk, 1000DSC)
 
-    f = Figure(size = (500, 700))
+    with_theme() do
+        f = Figure(size = (600, 700))
 
-    ax1 = Axis(f[1, 1])
-    ax2 = Axis(f[2, 1])
-    ax3 = Axis(f[3, 1])
-    ax4 = Axis(f[3, 1])
+        ax1 = Axis(f[1, 1])
+        ax2 = Axis(f[2, 1])
+        ax3 = Axis(f[3, 1])
+        ax4 = Axis(f[3, 1])
 
-    lines!(ax1, Tk, y1; color = :blue, label = label_water)
-    lines!(ax1, Tk, Y2; color = :black, label = "Kaolinite")
-    lines!(ax1, Tk, Y3; color = :green, label = "Metakaolin")
-    lines!(ax1, Tk, Y4; color = :red, label = "Spinel")
-    lines!(ax1, Tk, Y5; color = :cyan, label = "Silica (A)")
-    lines!(ax2, Tk, TGA; color = :black, label = "TGA")
-    l3 = lines!(ax3, Tk, DSC; color = :black)
-    l4 = lines!(ax4, Tk, δH; color = :red)
+        lines!(ax1, Tk, y1; color = :blue, label = label_water)
+        lines!(ax1, Tk, Y2; color = :black, label = "Kaolinite")
+        lines!(ax1, Tk, Y3; color = :green, label = "Metakaolin")
+        lines!(ax1, Tk, Y4; color = :red, label = "Spinel")
+        lines!(ax1, Tk, Y5; color = :cyan, label = "Silica (A)")
+        lines!(ax2, Tk, TGA; color = :black, label = "TGA")
+        l3 = lines!(ax3, Tk, DSC; color = :black)
+        l4 = lines!(ax4, Tk, δH; color = :red)
 
-    axislegend(ax1; position = :ct, orientation = :horizontal)
-    axislegend(ax2; position = :rt, orientation = :horizontal)
-    axislegend(ax3, [l3, l4], ["DSC", "ΔH"], position = :lt,
-              orientation = :horizontal)
+        axislegend(ax1;
+                   position = :ct, orientation = :horizontal,
+                   labelsize = 10)
+        axislegend(ax2;
+                   position = :rt, orientation = :horizontal,
+                   labelsize = 10)
+        axislegend(ax3, [l3, l4], ["DSC", "ΔH"];
+                   position = :lt, orientation = :horizontal,
+                   labelsize = 10)
 
-    ax1.ylabel = "Mass content [%]"
-    ax2.ylabel = "Residual mass [%]"
-    ax3.ylabel = "Power input [mW/mg]"
-    ax4.ylabel = "Enthalpy change [MJ/kg]"
-    ax4.xlabel = "Temperature [°C]"
+        ax1.ylabel = "Mass content [%]"
+        ax2.ylabel = "Residual mass [%]"
+        ax3.ylabel = "Power input [mW/mg]"
+        ax4.ylabel = "Enthalpy change [MJ/kg]"
+        ax4.xlabel = "Temperature [°C]"
 
-    xticks = 0:100:1200
-    ax1.xticks = xticks
-    ax2.xticks = xticks
-    ax3.xticks = xticks
-    ax4.xticks = xticks
+        xticks = 0:100:1200
+        ax1.xticks = xticks
+        ax2.xticks = xticks
+        ax3.xticks = xticks
+        ax4.xticks = xticks
 
-    ax1.yticks = 0:25:100
-    ax2.yticks = 80:4:100
-    ax4.yticks = 0:0.5:2.5
+        ax1.yticks = 0:25:100
+        ax2.yticks = 80:4:100
+        ax4.yticks = 0:0.5:2.5
 
-    xlims!(ax1, (0, 1200))
-    xlims!(ax2, (0, 1200))
-    xlims!(ax3, (0, 1200))
-    xlims!(ax4, (0, 1200))
+        xlims!(ax1, (0, 1200))
+        xlims!(ax2, (0, 1200))
+        xlims!(ax3, (0, 1200))
+        xlims!(ax4, (0, 1200))
 
-    ylims!(ax1, (-1, 135))
-    ylims!(ax2, (84, 100))
-    ylims!(ax4, (0, 2.5))
+        ylims!(ax1, (-1, 135))
+        ylims!(ax2, (84, 100))
+        ylims!(ax4, (0, 2.5))
 
-    ax4.ygridcolor = :transparent
-    ax4.yaxisposition = :right
-    ax4.ylabelcolor = :red
+        ax4.ygridcolor = :transparent
+        ax4.yaxisposition = :right
+        ax4.ylabelcolor = :red
 
-    return f
+        f
+    end
 end;
 ```
 
@@ -529,6 +536,9 @@ huser = 0.5;
 
 ```{julia}
 #| echo: true
+#| fig-cap: Simulated phases and TGA/DSC profiles.
+#| fig-align: center
+#| out-width: "60%"
 sol, fig = let
     @info "Computation running here..."
 
@@ -565,11 +575,14 @@ Below we illustrate the mixture specific heat extracted from the observables.
 
 ```{julia}
 #| echo: true
+#| fig-cap: Simulated specific heat capacity evolution.
+#| fig-align: center
+#| out-width: "60%"
 with_theme() do
     T = sol[model.T] .- 273.15
     c = sol[model.c] ./ 1000
 
-    f = Figure(size = (500, 350))
+    f = Figure(size = (600, 300))
     ax = Axis(f[1, 1])
     lines!(ax, T, c; color = :black)
 
