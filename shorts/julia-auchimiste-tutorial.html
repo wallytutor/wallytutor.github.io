@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Walter Dal’Maz Silva">
-<meta name="dcterms.date" content="2026-07-26">
+<meta name="dcterms.date" content="2026-07-27">
 
 <title>AuChimiste Tutorial</title>
 <style>
@@ -25,7 +25,61 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="julia-auchimiste-tutorial_files/libs/clipboard/clipboard.min.js"></script>
@@ -69,7 +123,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 26, 2026</p>
+      <p class="date">July 27, 2026</p>
     </div>
   </div>
   
@@ -81,9 +135,303 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<p>Let’s start by a global import; everything that is intended to be accessible to the end user is found here:</p>
+<div id="ec65c7d2" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Pkg</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">open</span>(<span class="st">"pkg_init.log"</span>, <span class="st">"w"</span>) <span class="cf">do</span> log</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Pkg</span>.<span class="fu">activate</span>(<span class="fu">joinpath</span>(<span class="pp">@__DIR__</span>, <span class="st">"julia-shared"</span>); io<span class="op">=</span>log)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">push!</span>(<span class="cn">LOAD_PATH</span>, <span class="fu">joinpath</span>(<span class="pp">@__DIR__</span>, <span class="st">"scripts"</span>))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">AuChimiste</span> as AC</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="elements-database" class="level2">
+<h2 class="anchored" data-anchor-id="elements-database">Elements database</h2>
+<p>A built-in elements database is provided by <code>ChemicalElements</code>, which is the base building block of <code>AuChimiste</code>. It is an extremely simple module and below we go through the whole of its exposed functionalities in just a few lines of code</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Database extent">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Database extent
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In general you only need to worry about using <code>ChemicalElements</code> directly if your calculations require isotopes to be added. The default table of elements provides access only to stable elements.</p>
+</div>
+</div>
+<p>You can get a list of available atomic symbols with <a href="@ref"><code>list_elements</code></a>. Suppose you want to check if deuterium <em>D</em> is present in the list, you can use its <a href="https://docs.julialang.org/en/v1/base/base/#Core.Symbol">symbol</a> for inspection:</p>
+<div id="77ca6157" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>false</code></pre>
+</div>
+</div>
+<p>Since it is not present but your calculations require this isotope, you feed the database with <code>add_element</code>; you also decide to add tritium. In fact <code>add_element</code> will not fail if the element exists, but issue a warning. You can try adding an existing element to see what happens:</p>
+<div id="96c7b707" class="cell" data-execution_count="3">
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre><span class="ansi-yellow-fg ansi-bold">┌ </span><span class="ansi-yellow-fg ansi-bold">Warning: </span>The provided element H is already present in the elements dictionary. If you are trying to create an isotope, please chose a different name. Also notice that default stable elements cannot be modified.
 
+<span class="ansi-yellow-fg ansi-bold">└ </span><span class="ansi-bright-black-fg">@ AuChimiste F:\kompanion\repos\wallytutor.github.io\shorts\scripts\AuChimiste.jl:273</span>
+</pre>
+</div>
+</div>
+</div>
+<p>If you wish to get back to the standard data you can do so with <code>reset_elements_table</code>. Notice below that deuterium mass is no longer available.</p>
+<div id="817cbd60" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>false</code></pre>
+</div>
+</div>
+</section>
+<section id="element-data-retrieval" class="level2">
+<h2 class="anchored" data-anchor-id="element-data-retrieval">Element data retrieval</h2>
+<p>It is possible to retrieve the <code>atomic_mass</code>. Other data retrieval functions include <code>atomic_number</code> and <code>element_name</code>. All of these work with both string and symbols.</p>
+<div id="155b5271" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>AC.<span class="fu">atomic_mass</span>(<span class="op">:</span>C), AC.<span class="fu">atomic_number</span>(<span class="op">:</span>C), AC.<span class="fu">element_name</span>(<span class="op">:</span>C)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>(12.011, 6, "carbon")</code></pre>
+</div>
+</div>
+<p>Getting the whole <code>element</code> data can be achieved at once as follows:</p>
+<div id="73a2e645" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>AC.<span class="fu">element</span>(<span class="op">:</span>Cl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>Cl (17, chlorine) 35.45 kg/kmol</code></pre>
+</div>
+</div>
+<p>In this case is also possible to query the data through the atomic number:</p>
+<div id="a282c31b" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>AC.<span class="fu">element</span>(<span class="fl">26</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>Fe (26, iron) 55.845 kg/kmol</code></pre>
+</div>
+</div>
+<p>On the other hand atomic masses of unstable elements are not accessible:</p>
+<div id="a4e12536" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> AC.<span class="fu">atomic_mass</span>(<span class="op">:</span>Po) <span class="cf">catch</span> <span class="cn">e</span>; <span class="pp">@error</span>(<span class="cn">e</span>) <span class="cf">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre><span class="ansi-bright-red-fg ansi-bold">┌ </span><span class="ansi-bright-red-fg ansi-bold">Error: </span>NoIsotopeProvidedError: Accessing the atomic mass of unstable element Po is not supported. Please consider creating a named isotope of this element with `add_isotope`.
 
-</main>
+<span class="ansi-bright-red-fg ansi-bold">└ </span><span class="ansi-bright-black-fg">@ Main In[9]:1</span>
+</pre>
+</div>
+</div>
+</div>
+<p>To have an unstable element listed, you need to <a href="@ref"><code>add_isotope</code></a> before. For instance, let’s add <a href="https://en.wikipedia.org/wiki/Isotopes_of_polonium">Po-187</a> to the database.</p>
+<div id="02c09e71" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>AC.<span class="fu">add_isotope</span>(<span class="op">:</span>Po, <span class="fl">187.003030</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>Po187 (84, polonium-187) 187.00303 kg/kmol</code></pre>
+</div>
+</div>
+</section>
+<section id="creating-components" class="level2">
+<h2 class="anchored" data-anchor-id="creating-components">Creating components</h2>
+<p>Component creation is a trivial task with <code>AuChimiste</code>. All you need to do is call <code>component</code> with one of the available composition specification methods and a list of keyword arguments representing the element amounts to use. For instance, to create aluminum oxide from its stoichiometry one does:</p>
+<div id="ccd7b1da" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; Al<span class="op">=</span><span class="fl">2</span>, O<span class="op">=</span><span class="fl">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>AuChimiste.ChemicalComponent([:Al, :O], [2.0, 3.0], [0.4, 0.6], [0.5292569257852893, 0.47074307421471057], 101.9600768, 0)</code></pre>
+</div>
+</div>
+<p>The above is a syntactic sugar to providing a <a href="@ref"><code>stoichiometry</code></a> as argument. Please notice that this form requires the overall charge of the component to be specified.</p>
+<div id="c8dfeea1" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> AC.<span class="fu">component</span>(AC.<span class="fu">stoichiometry</span>(Al<span class="op">=</span><span class="fl">2</span>, O<span class="op">=</span><span class="fl">3</span>), <span class="fl">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>AuChimiste.ChemicalComponent([:Al, :O], [2.0, 3.0], [0.4, 0.6], [0.5292569257852893, 0.47074307421471057], 101.9600768, 0)</code></pre>
+</div>
+</div>
+<p>The other composition specification methods are <code>mass_proportions</code> and <code>mole_proportions</code>. Let’ s see their use in a more elaborate example with naphthalene <code>C_{10}H_{8}</code>:</p>
+<div id="7c86b1eb" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>naphtalene <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; C<span class="op">=</span><span class="fl">10</span>, H<span class="op">=</span><span class="fl">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<pre><code>AuChimiste.ChemicalComponent([:C, :H], [10.0, 8.0], [0.5555555555555556, 0.4444444444444444], [0.937085524365316, 0.06291447563468411], 128.17399999999998, 0)</code></pre>
+</div>
+</div>
+<p>So far nothing new. We can use <code>mass_fractions_map</code> and <code>mole_fractions_map</code> to retrieve the named-tuples of compositions in the units provided by these functions:</p>
+<div id="8c648796" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> AC.<span class="fu">mass_fractions_map</span>(naphtalene)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> AC.<span class="fu">mole_fractions_map</span>(naphtalene)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>Y, X</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>((C = 0.937085524365316, H = 0.06291447563468411), (C = 0.5555555555555556, H = 0.4444444444444444))</code></pre>
+</div>
+</div>
+<p>Using the mass fractions <code>Y</code> one can create the equivalent compound from this sort of input. Notice here that a scale is provided to enforce the stoichiometric coefficient of carbon in the species (there is no way to infer it simply from elemental mass fractions).</p>
+<div id="d110de62" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>m_y <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>mass_proportions; Y<span class="op">...</span>, scale<span class="op">=:</span>C<span class="op">=&gt;</span><span class="fl">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>AuChimiste.ChemicalComponent([:C, :H], [10.0, 8.0], [0.5555555555555556, 0.4444444444444444], [0.937085524365316, 0.06291447563468411], 128.17399999999998, 0)</code></pre>
+</div>
+</div>
+<p>The same can be done using mole fractions, as follows:</p>
+<div id="77289001" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>m_x <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>mole_proportions; X<span class="op">...</span>, scale<span class="op">=:</span>C<span class="op">=&gt;</span><span class="fl">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>AuChimiste.ChemicalComponent([:C, :H], [10.0, 8.0], [0.5555555555555556, 0.4444444444444444], [0.937085524365316, 0.06291447563468411], 128.17399999999998, 0)</code></pre>
+</div>
+</div>
+<p>If scaling is not provided, the default behavior is enforced, applying unit content to the first element provided in the composition tuple. Notice that these constructors do not sort arguments. This behavior is intended so that compounds can be easily understood by the user in the case a standard formula format exists (as for the oxides above).</p>
+<div id="a8c46c5a" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>AC.<span class="fu">component</span>(<span class="op">:</span>mole_proportions; X<span class="op">...</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>AuChimiste.ChemicalComponent([:C, :H], [0.5555555555555556, 0.4444444444444444], [0.5555555555555556, 0.4444444444444444], [0.937085524365316, 0.06291447563468411], 7.120777777777777, 0)</code></pre>
+</div>
+</div>
+<p>Finally, by <em>proportions</em> instead of <em>fractions</em> in the name of the composition specification methods we mean that internal normalization is performed. That might be useful, for instance, for reverse-engineering a compound formula from an analysis report.</p>
+<p>Often in the field of combustion of heavy-fuel oils one is confronted with empirical fuel compositions given in mass percentages. Assume the following composition; playing with the scaling factor an engineer could infer a candidate composition and identify the family of the fuel <span class="citation" data-cites="Lawn1987">(<a href="#ref-Lawn1987" role="doc-biblioref">Lawn 1987</a>)</span>.</p>
+<div id="85af53e0" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>AC.<span class="fu">component</span>(<span class="op">:</span>mass_proportions; C <span class="op">=</span> <span class="fl">93.2</span>, H <span class="op">=</span> <span class="fl">6.3</span>, O <span class="op">=</span> <span class="fl">0.3</span>, scale<span class="op">=:</span>C<span class="op">=&gt;</span><span class="fl">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<pre><code>AuChimiste.ChemicalComponent([:C, :H, :O], [10.0, 8.054586909871242, 0.024165271059054916], [0.5531355206333394, 0.445527812387811, 0.001336666978849611], [0.9338677354709419, 0.06312625250501001, 0.003006012024048096], 128.61564377682402, 0)</code></pre>
+</div>
+</div>
+</section>
+<section id="combining-components" class="level2">
+<h2 class="anchored" data-anchor-id="combining-components">Combining components</h2>
+<p>Some algebraic manipulation is also possible with <code>ChemicalComponent</code> instances. Let’s see a practical case from cement industry, where compositions are often expressed with a jargon that makes use of multiple of component oxides to represent complex phases such as <code>C_{12}A_7</code>.</p>
+<p>Below we create a component <code>C</code> for calcium oxide (notice that <code>C</code> here was chosen as per industry jargon, it has nothing to do with carbon) and create the multiples of the base oxides (using an extension of <code>Base.:*</code>) before combining them through addition (again, by extending <code>Base.:+</code> operator).</p>
+<div id="4efc75c3" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; Al<span class="op">=</span><span class="fl">2</span>, O<span class="op">=</span><span class="fl">3</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>C <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; Ca<span class="op">=</span><span class="fl">1</span>, O<span class="op">=</span><span class="fl">1</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>C12A7 <span class="op">=</span> <span class="fl">12</span>C <span class="op">+</span> <span class="fl">7</span>A</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<pre><code>AuChimiste.ChemicalComponent([:Al, :Ca, :O], [14.0, 12.0, 33.0], [0.23728813559322035, 0.2033898305084746, 0.559322033898305], [0.2724141100024047, 0.3468343810969771, 0.38075150890061815], 1386.6445376000001, 0)</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled" title="Meaning of operations">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Meaning of operations
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>All operations performed over <code>ChemicalComponent</code> instances are defined on stoichiometric coefficients, <em>i.e.</em> the scaling provided by multiplication acts directly on those coefficients, while combining will add coefficients for corresponding elements.</p>
+</div>
+</div>
+<p>Subtraction operation (<code>Base.:-</code>) is also possible, but there are many conditions under which it could fail and it was chosen by design that a negative composition should return the mass imbalance instead, <em>i.e.</em> what lacks in <code>A</code> to be subtracted <code>C</code> and still return a valid component.</p>
+<div id="43828356" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; Al<span class="op">=</span><span class="fl">2</span>, O<span class="op">=</span><span class="fl">3</span>)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>C <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; Ca<span class="op">=</span><span class="fl">1</span>, O<span class="op">=</span><span class="fl">1</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>A <span class="op">-</span> C</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre><span class="ansi-yellow-fg ansi-bold">┌ </span><span class="ansi-yellow-fg ansi-bold">Warning: </span>Component subtraction is fragile and must be used with care. The component operation you tried to perform produced negative coefficients. That is because the right component have more of one/some elements than the left component. Instead of retuning the meaningless composition I am providing you with the mass imbalance.
+
+<span class="ansi-yellow-fg ansi-bold">└ </span><span class="ansi-bright-black-fg">@ AuChimiste F:\kompanion\repos\wallytutor.github.io\shorts\scripts\AuChimiste.jl:861</span>
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<pre><code>AuChimiste.ChemicalComponent([:Ca], [1.0], [1.0], [1.0], 40.078, 0)</code></pre>
+</div>
+</div>
+<p>On the other hand, if the left component has <em>enough</em> of what is being subtracted by the right component, then the actual resulting component is returned:</p>
+<div id="442c4344" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>C12A7 <span class="op">-</span> C</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<pre><code>AuChimiste.ChemicalComponent([:Al, :Ca, :O], [14.0, 11.0, 32.0], [0.24561403508771928, 0.19298245614035087, 0.5614035087719298], [0.2838950499884795, 0.3313307949742964, 0.3847741550372241], 1330.5675376000002, 0)</code></pre>
+</div>
+</div>
+</section>
+<section id="charged-components" class="level2">
+<h2 class="anchored" data-anchor-id="charged-components">Charged components</h2>
+<p>For the sake of generality, charged components are also supported. This is required so that ions can be considered in reactions. For instance, to create a sodium chloride formula one can proceed as follows:</p>
+<div id="e4fb02e6" class="cell" data-execution_count="21">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>Na₊ <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; charge<span class="op">=+</span><span class="fl">1</span>, Na<span class="op">=</span><span class="fl">1</span>)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>Cl₋ <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; charge<span class="op">=-</span><span class="fl">1</span>, Cl<span class="op">=</span><span class="fl">1</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>NaCl <span class="op">=</span> Na₊ <span class="op">+</span> Cl₋</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>AuChimiste.ChemicalComponent([:Cl, :Na], [1.0, 1.0], [0.5, 0.5], [0.6066074598985822, 0.3933925401014177], 58.43976928000001, 0)</code></pre>
+</div>
+</div>
+<p>The user must be aware of a few caveats; first, molecular mass is not corrected for the missing/extra electrons. Electron and mass balance are handled separately, as this makes more sense from a physical standpoint. Scaling of a component also scales its charge. This is required for proper balance of chemical equations.</p>
+<div id="feea47b3" class="cell" data-execution_count="22">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>(<span class="fl">3</span>Na₊).charge</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<pre><code>3</code></pre>
+</div>
+</div>
+<p>So the formation of calcium hydroxide can be stated as:</p>
+<div id="fdc4075e" class="cell" data-execution_count="23">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>Ca₊₂ <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; charge<span class="op">=+</span><span class="fl">2</span>, Ca<span class="op">=</span><span class="fl">1</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>OH₋ <span class="op">=</span> AC.<span class="fu">component</span>(<span class="op">:</span>stoichiometry; charge<span class="op">=-</span><span class="fl">1</span>, O<span class="op">=</span><span class="fl">1</span>, H<span class="op">=</span><span class="fl">1</span>)</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>Ca₊₂ <span class="op">+</span> <span class="fl">2</span>OH₋</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<pre><code>AuChimiste.ChemicalComponent([:Ca, :H, :O], [1.0, 2.0, 2.0], [0.2, 0.4, 0.4], [0.5409220968525618, 0.027209415321492198, 0.4318684878259461], 74.092, 0)</code></pre>
+</div>
+</div>
+</section>
+<section id="quantities-of-matter" class="level2">
+<h2 class="anchored" data-anchor-id="quantities-of-matter">Quantities of matter</h2>
+<p>An arbitrary amount of matter can be constructed with <code>quantity</code>. The resulting <code>ComponentQuantity</code> object supports both scaling (multiplication) and additive (summation) operations. A trivial example would be:</p>
+<div id="e6694b86" class="cell" data-execution_count="24">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fl">3</span>AC.<span class="fu">quantity</span>(A, <span class="fl">1.0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<pre><code>AuChimiste.ComponentQuantity(3.0, AuChimiste.ChemicalComponent([:Al, :O], [2.0, 3.0], [0.4, 0.6], [0.5292569257852893, 0.47074307421471057], 101.9600768, 0))</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled" title="Meaning of operations">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Meaning of operations
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>On the other hand, operations performed on <code>ComponentQuantity</code> entities are scaled by the elemental mass fractions. That is mostly intuitive in the context of application of this structure.</p>
+</div>
+</div>
+<p>Well, there is nothing special there, the mass was scaled by <em>three</em> with no composition change. The next example is maybe more instructive: we mix one mole of <code>A</code> with one mole of <code>C</code> by providing their molar masses as the mass of each component. This is interesting because one can quickly verify the correctness of the results.</p>
+<div id="32d3b121" class="cell" data-execution_count="25">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>ma <span class="op">=</span> AC.<span class="fu">quantity</span>(A, <span class="fl">0.001</span>A.molar_mass)</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>mc <span class="op">=</span> AC.<span class="fu">quantity</span>(C, <span class="fl">0.001</span>C.molar_mass)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>ma <span class="op">+</span> mc</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<pre><code>AuChimiste.ComponentQuantity(0.1580370768, AuChimiste.ChemicalComponent([:Al, :Ca, :O], [0.05396307679999999, 0.0269815384, 0.10792615359999998], [0.2857142857142857, 0.14285714285714288, 0.5714285714285714], [0.34145833302327955, 0.2535987175384151, 0.4049429494383055], 4.264083456302949, 0))</code></pre>
+</div>
+</div>
+<p>Because in many situations one may be interested in mixing quantities directly, a wrapper is provided for eliminating the need of and explicit creation of a <code>component</code>.</p>
+<div id="eee1d0fa" class="cell" data-execution_count="26">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>ma <span class="op">=</span> AC.<span class="fu">quantity</span>(<span class="op">:</span>stoichiometry, <span class="fl">1.0</span>; Al<span class="op">=</span><span class="fl">2</span>, O<span class="op">=</span><span class="fl">3</span>)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>mc <span class="op">=</span> AC.<span class="fu">quantity</span>(<span class="op">:</span>stoichiometry, <span class="fl">1.0</span>; Ca<span class="op">=</span><span class="fl">1</span>, O<span class="op">=</span><span class="fl">1</span>)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>ma <span class="op">+</span> mc</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<pre><code>AuChimiste.ComponentQuantity(2.0, AuChimiste.ChemicalComponent([:Al, :Ca, :O], [0.5292569257852893, 0.48115160226117654, 1.2750369909391104], [0.2315771351312748, 0.21052858108590652, 0.5578942837828187], [0.2646284628926447, 0.3573479323073631, 0.37802360479999225], 53.963076799999996, 0))</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled" title="Charge operations">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Charge operations
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Operations on electrical charges of quantities of matter are currently not supported. This functionality was initially conceived for balancing macroscopic amounts of matter and may in the future be extended for ionic substances.</p>
+</div>
+</div>
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-Lawn1987" class="csl-entry" role="listitem">
+Lawn, C. J. 1987. <em>Principles of Combustion Engineering for Boilers</em>. Edited by C. J. Lawn. Combustion Treatise. Academic Press.
+</div>
+</div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
