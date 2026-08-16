@@ -42,11 +42,7 @@ jupyter:
 
 _How to model an evaporation/boiling process?_
 
-This notebook summarizes the key ideas of modeling evaporation and/or boiling in simplified systems.
-
-The goal of the approach is to be energetically consistent but not really physically formal (at least for now).
-
-We start by importing the required tools.
+This notebook summarizes the key ideas of modeling evaporation and/or boiling in simplified systems. The goal of the approach is to be energetically consistent but not really physically formal (at least for now). We start by importing the required tools.
 
 ```{python}
 #| echo: true
@@ -63,17 +59,13 @@ from scipy.integrate import (
 
 ## Simple evaporation rate model
 
-Increasing temperature should increase vapor pressure of water till a saturation is reached.
-
-Under given external conditions, this could be parametrized in terms of a sigmoid function as:
+Increasing temperature should increase vapor pressure of water till a saturation is reached. Under given external conditions, this could be parametrized in terms of a sigmoid function as:
 
 $$
 \dot{m}_{evap} = \frac{\dot{m}_{max}}{1 + \exp\left[-k\left(T-T_{b}\right)\right]}\qquad\left[{kg}\cdotp{m}^{-2}\cdotp{s}^{-1}\right]
 $$
 
-Parameter $T_b$ is not boiling point, but a value below that so that saturation is reached at boiling and the breadth of the dispersion is given by $k$.
-
-In code that means:
+Parameter $T_b$ is not boiling point, but a value below that so that saturation is reached at boiling and the breadth of the dispersion is given by $k$. In code that means:
 
 ```{python}
 #| echo: true
@@ -106,29 +98,19 @@ _ = plot_evaporation_rate()
 
 ## A boiling pot in action
 
-Consider a system of variable size representing the water in a pot (not the whole volume inside the pot).
-
-Its change in total enthalpy in time depends on heat inputs and losses.
-
-Say a heat source $\dot{q}_{in}$ is place below the pot and its walls and water free surface are adiabatic (hard to believe).
-
-Thus one can write $\dot{H}=\dot{q}_{in}$ as the energy balance, but $H=mh$, with $h$ the specific enthalpy, thus
+Consider a system of variable size representing the water in a pot (not the whole volume inside the pot). Its change in total enthalpy in time depends on heat inputs and losses. Say a heat source $\dot{q}_{in}$ is place below the pot and its walls and water free surface are adiabatic (hard to believe). Thus one can write $\dot{H}=\dot{q}_{in}$ as the energy balance, but $H=mh$, with $h$ the specific enthalpy, thus
 
 $$
 \dfrac{dH}{dt}=\dfrac{d(mh)}{dt}=m\dfrac{dh}{dt}+\dfrac{dm}{dt}h=m\dfrac{dh}{dt}-\dot{m}_{evap}h=\dot{q}_{in}
 $$
 
-because the only source of mass change is evaporation, then the mass derivative equals minus the evaporation rate, $\dot{m}=-\dot{m}_{evap}$.
-
-We also have at constant pressure $dh=c_{p}dT$ and the latent enthalpy of evaporation is $L$, so it can be rewritten
+because the only source of mass change is evaporation, then the mass derivative equals minus the evaporation rate, $\dot{m}=-\dot{m}_{evap}$. We also have at constant pressure $dh=c_{p}dT$ and the latent enthalpy of evaporation is $L$, so it can be rewritten
 
 $$
 \dfrac{dT}{dt}=\dfrac{\dot{q}_{in}+\dot{m}L}{mc_{P}}
 $$
 
-Once boiling start there should be no temperature change, so all the heat must be used for evaporation.
-
-Under that circumstance the total boiling rate must be given by
+Once boiling start there should be no temperature change, so all the heat must be used for evaporation. Under that circumstance the total boiling rate must be given by
 
 $$
 \dot{m}_{evap}=\dfrac{\dot{q}_{in}}{L}
@@ -145,9 +127,7 @@ cp_w = 4180.0
 L_w = 2257166.0
 ```
 
-Let's put the system of ODE's in form of code (for an area of 1 m²).
-
-The Heaviside approximation given by `active` simply avoid some overflows during model evaluation near the end.
+Let's put the system of ODE's in form of code (for an area of 1 m²). The Heaviside approximation given by `active` simply avoid some overflows during model evaluation near the end.
 
 ```{python}
 #| echo: true
@@ -234,11 +214,7 @@ if results.success:
 
 ## What about the drying of solids
 
-The previous model can be generalized for the evaporation of fluids from solids.
-
-Next we generalize the system for including a mass fraction of fluids in a solid to be dried.
-
-The simple model is proposed as a set of mass, species, and energy equations:
+The previous model can be generalized for the evaporation of fluids from solids. Next we generalize the system for including a mass fraction of fluids in a solid to be dried. The simple model is proposed as a set of mass, species, and energy equations:
 
 $$
 \begin{aligned}
@@ -254,9 +230,7 @@ $$
 c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 $$
 
-Notice that we could solve only 2 equations by making a transformation in mass equation definition, but that would shadow the generality of the model for any number of species.
-
-Now we only need the specific heat of the solid, here $SiO_2$ and we are ready to go.
+Notice that we could solve only 2 equations by making a transformation in mass equation definition, but that would shadow the generality of the model for any number of species. Now we only need the specific heat of the solid, here $SiO_2$ and we are ready to go.
 
 ```{python}
 #| echo: true
@@ -264,9 +238,7 @@ Now we only need the specific heat of the solid, here $SiO_2$ and we are ready t
 cp_b = 742.34
 ```
 
-In what follows the `active` takes the actual meaning it should (not only the auxiliary role in previous example): stop mass loss once the mass fraction of water falls to zero.
-
-Also notice that we are clipping the bounds of `Y` so that the solver does not try anything unphysical.
+In what follows the `active` takes the actual meaning it should (not only the auxiliary role in previous example): stop mass loss once the mass fraction of water falls to zero. Also notice that we are clipping the bounds of `Y` so that the solver does not try anything unphysical.
 
 ```{python}
 #| echo: true
@@ -295,9 +267,7 @@ def model(t, x, q_in, mtol):
     return [mdot, Ydot, Tdot]
 ```
 
-If you want to stop the simulation, now that must be done with mass fraction instead of mass.
-
-This will be disabled by default in the example the follows.
+If you want to stop the simulation, now that must be done with mass fraction instead of mass. This will be disabled by default in the example the follows.
 
 ```{python}
 #| echo: true
@@ -371,15 +341,7 @@ if results.success:
 
 ## Energy consistency only
 
-In some cases we don't need to compute mass conservation but are only interested in energy consistency.
-
-What follows present some tricks for reaching that by playing with the expression for specific heat.
-
-For the illustration purposes we use a `ct.Water` object in a `ct.SolutionArray` for computing properties.
-
-A temperature range representative of water from room temperature to gas is considered here.
-
-All the properties in what follow are assumed to be at constant pressure, so it is omitted in the names.
+In some cases we don't need to compute mass conservation but are only interested in energy consistency. What follows present some tricks for reaching that by playing with the expression for specific heat. For the illustration purposes we use a `ct.Water` object in a `ct.SolutionArray` for computing properties. A temperature range representative of water from room temperature to gas is considered here. All the properties in what follow are assumed to be at constant pressure, so it is omitted in the names.
 
 ```{python}
 #| echo: true
@@ -392,9 +354,7 @@ sol = ct.SolutionArray(liq, shape=T.shape)
 sol.TP = T, ct.one_atm * np.ones_like(T)
 ```
 
-Prior to any computations we recover the quantities of interest, specific heat `cp` and specific enthalpy `hm`.
-
-Notice that given the `mass` basis declared before these quantities are per mass unit [kg].
+Prior to any computations we recover the quantities of interest, specific heat `cp` and specific enthalpy `hm`. Notice that given the `mass` basis declared before these quantities are per mass unit [kg].
 
 ```{python}
 #| echo: true
@@ -402,11 +362,13 @@ cp_ref = sol.cp
 hm_ref = sol.h
 ```
 
-Since the `ct.Water` has no latent heat attribute and this value is recovered by filtering the array.
+Since the `ct.Water` has no latent heat attribute and this value is recovered by filtering the array. Enthalpy change is computed and one may check this value is as reported in the literature.
 
-Enthalpy change is computed and one may check this value is as reported in the literature.
+::: {.callout-important title="Zero or Not Zero"}
 
-**Note:** do not use equality here because you might get a zero depending on how `T` was constructed.
+Do not use equality here because you might get a *zero* depending on how `T` was constructed.
+
+:::
 
 ```{python}
 #| echo: true
@@ -419,11 +381,7 @@ dh = ha - hb
 dh
 ```
 
-Next step is to compute a *modified* specific heat by incorporating a smeared latent heat contribution around the boiling point.
-
-It must be emphasized that the breadth of the smearing depends on how you intend to integrate the equations later.
-
-It is funny and reconforting to see that the ration on the r.h.s. here is the definition of specific heat at the limit $\Delta{}T\rightarrow{}0$.
+Next step is to compute a *modified* specific heat by incorporating a smeared latent heat contribution around the boiling point. It must be emphasized that the breadth of the smearing depends on how you intend to integrate the equations later. It is funny and reconforting to see that the ration on the r.h.s. here is the definition of specific heat at the limit $\Delta{}T\rightarrow{}0$.
 
 ```{python}
 #| echo: true
@@ -455,9 +413,7 @@ error = abs((dh_mod - dh_ref) / dh_ref)
 error < rtol, error
 ```
 
-From that we see that total enthalpy change is conserved to within approximately 0.02%, what is good for our purposes.
-
-Finally we display a comparison plot of the reference curves and their modified version.
+From that we see that total enthalpy change is conserved to within approximately 0.02%, what is good for our purposes. Finally we display a comparison plot of the reference curves and their modified version.
 
 ```{python}
 #| echo: true
@@ -482,9 +438,7 @@ def plot_results(T, hm_ref, hm_mod, plot=None):
 plot_results(T, hm_ref, hm_mod)
 ```
 
-Results so far are numerically good but the steps in the functions are not analytical and can be a problem with automatic differentiation (AD).
-
-In what follows we work towards a *discontinuous differentiable* function (that makes no mathematical sense, but works when dealing with AD)!
+Results so far are numerically good but the steps in the functions are not analytical and can be a problem with automatic differentiation (AD). In what follows we work towards a *discontinuous differentiable* function (that makes no mathematical sense, but works when dealing with AD)!
 
 A Heaviside function can be implemented with the `sign` function as
 
@@ -492,9 +446,7 @@ $$
 H(x, x_0) = \frac{1 + sign(x-x_0)}{2}
 $$
 
-which evaluates to 1 when $x>x_0$ and 0 when $x<x_0$ (the value at the equality is implementation dependent, often set to 0.5).
-
-Below we illustrate the computation of a square hump around zero.
+which evaluates to 1 when $x>x_0$ and 0 when $x<x_0$ (the value at the equality is implementation dependent, often set to 0.5). Below we illustrate the computation of a square hump around zero.
 
 ```{python}
 #| echo: true
@@ -536,9 +488,7 @@ d12 = c2 - c1
 d23 = c3 - c2
 ```
 
-Using a sequence of stepwise functions we reconstruct the original specific heat function.
-
-By incremental changes one also find some *analytical* enthalpy function.
+Using a sequence of stepwise functions we reconstruct the original specific heat function. By incremental changes one also find some *analytical* enthalpy function.
 
 ```{python}
 #| echo: true
@@ -580,7 +530,7 @@ A graphic displays all the curves superimposed.
 #| echo: true
 #| fig-cap: Comparison of the reference and modified specific heat capacity and specific enthalpy for liquid water.
 #| fig-align: center
-@MajordomePlot.new(shape=(2, 1), size=(9, 6), dpi=300)
+@MajordomePlot.new(shape=(2, 1), size=(9, 6))
 def plot_results(*args, plot=None):
     T, hm_ref, hm_mod, hm_int, cp_int, cp_mod = args
     fig, ax = plot.subplots()
