@@ -3,7 +3,7 @@
 1. Rendering locally the documents:
 
 ```bash
-quarto render index.qmd
+uv run majordome-build-qmd --file shorts/scientific-computing.qmd
 ```
 
 2. Publishing to GitHub pages:
@@ -14,12 +14,4 @@ uv run python publish.py --render
 
 # Then publish to the right branch:
 uv run python publish.py --publish
-```
-
-3. Troubleshooting:
-
-```bash
-$env:QUARTO_PYTHON = ".venv/Scripts/python.exe"
-
-quarto render 'some-file.qmd'
 ```
