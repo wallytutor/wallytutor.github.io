@@ -16,4 +16,9 @@ dependencies = [
     "python-frontmatter>=1.3.0",
     "scipy>=1.18.0",
     "sympy>=1.14.0",
+    "majordome",
 ]
+
+[tool.uv.sources.majordome]
+git = "https://github.com/wallytutor/python-majordome.git"
+branch = "main"
