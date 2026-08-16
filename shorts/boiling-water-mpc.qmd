@@ -87,7 +87,6 @@ def plot_evaporation_rate(plot=None):
     r = evaporation_rate(T, scale=1)
 
     fig, ax = plot.subplots()
-    fig.dpi = 300
 
     ax[0].plot(T, r, c="k")
     ax[0].set_xlabel("Temperature [K]")
@@ -168,7 +167,6 @@ A function for plotting the integration of the model is also provided.
 def plot_pot_boiling(t, m, T, plot=None):
     """ Plot results from pot boiling experiment. """
     fig, ax = plot.subplots()
-    fig.dpi = 300
 
     ax[0].plot(t, T)
     ax[0].set_xlabel("Time [s]")
@@ -422,7 +420,6 @@ From that we see that total enthalpy change is conserved to within approximately
 @MajordomePlot.new(shape=(2, 1), size=(9, 6))
 def plot_results(T, hm_ref, hm_mod, plot=None):
     fig, ax = plot.subplots()
-    fig.dpi = 300
 
     ax[1].plot(T, hm_ref, label="Reference")
     ax[1].plot(T, hm_mod, label="Modified")
@@ -460,7 +457,6 @@ def plot_step(plot=None):
     g = g1 - g0
 
     fig, ax = plot.subplots()
-    fig.dpi = 300
 
     ax[0].plot(t, g.full().ravel())
     ax[0].set_xlabel("Independent variable")
@@ -533,8 +529,8 @@ A graphic displays all the curves superimposed.
 @MajordomePlot.new(shape=(2, 1), size=(9, 6))
 def plot_results(*args, plot=None):
     T, hm_ref, hm_mod, hm_int, cp_int, cp_mod = args
+
     fig, ax = plot.subplots()
-    fig.dpi = 300
 
     ax[0].plot(T, hm_int, label="Symbolic")
     ax[0].plot(T, hm_mod, label="Modified")
