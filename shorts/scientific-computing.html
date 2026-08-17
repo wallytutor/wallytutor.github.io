@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Walter Dal’Maz Silva">
-<meta name="dcterms.date" content="2026-07-15">
+<meta name="dcterms.date" content="2026-08-17">
 
 <title>What about Scientific Computing?</title>
 <style>
@@ -69,7 +69,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 15, 2026</p>
+      <p class="date">August 17, 2026</p>
     </div>
   </div>
   
@@ -151,7 +151,9 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="python-workflows" class="level2">
 <h2 class="anchored" data-anchor-id="python-workflows">Python workflows</h2>
-<p><em>Upcoming</em></p>
+<p>The evolution of Python package management has progressed from the foundational <a href="https://pip.pypa.io/en/stable/">pip</a>, through the era of <a href="https://docs.conda.io/projects/conda/en/latest/index.html">Conda</a>, to the modern dominance of <a href="https://docs.astral.sh/uv/">uv</a>. While <code>pip</code> remains the official tool for interacting with the <a href="https://pypi.org/">Python Package Index (PyPI)</a>, its dependency resolution speed often poses limitations in complex projects. Conda gained significant popularity when Python expanded beyond POSIX-compliant environments to multi-platform systems, offering robust capabilities for environment isolation and package management, though its strong association with the <a href="https://anaconda.org/">Anaconda</a> ecosystem eventually reduced its appeal. The landscape has been revolutionized by <code>uv</code>, a tool written in <a href="https://rust-lang.org/">Rust</a> that provides unparalleled speed in dependency resolution, environment creation, and environment recycling. Beyond pure package management, <code>uv</code> supports the creation of standard <code>pyproject.toml</code> configurations for non-package executable projects and integrates natively with <a href="https://pyo3.rs/">PyO3</a> to compile high-performance Rust extensions, establishing itself as the <em>de facto</em> standard for modern Python workflows as of 2026.</p>
+<p>The scientific Python ecosystem relies on highly mature, core libraries that function as indispensable extensions of the language itself, most notably the <strong>SciPy stack</strong>, which encompasses <strong>NumPy, Pandas, Matplotlib, SymPy</strong>, and <strong>SciPy</strong>. For machine learning, workflows branch into classical approaches and deep learning. Classical machine learning and data preparation are dominated by <strong>Scikit-learn</strong>, which provides an extensive suite of standard algorithms, and <strong>Scikit-image</strong>, frequently employed for image analysis and dataset generation. When projects scale to require massive computational resources and neural networks, deep learning frameworks such as <strong>PyTorch, TensorFlow</strong>, and <strong>JAX</strong> are utilized. These tools are designed to maximize performance and provide seamless scalability directly within GPU memory.</p>
+<p>Specialized scientific domains further rely on high-quality, academic-backed niche packages that serve as essential building blocks within the broader ecosystem. For instance, <a href="https://web.casadi.org/">CasADi</a> is heavily utilized in control, automation, and ordinary differential equations, enabling rapid prototyping of algorithmically differentiable systems and offering robust solvers for stiff equations. Similarly, <a href="https://cantera.org/">Cantera</a> serves as the foundational package for thermophysics, traditionally focused on gases but increasingly applied to other domains such as electrolytic cells and batteries. Because these niche tools are developed and maintained by dedicated academic research groups, they assure the long-term viability and continuous operation of these packages, allowing them to constitute critical building blocks of the basic Python ecosystem.</p>
 </section>
 <section id="producing-reports" class="level2">
 <h2 class="anchored" data-anchor-id="producing-reports">Producing reports</h2>

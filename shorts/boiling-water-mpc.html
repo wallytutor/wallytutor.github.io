@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Walter Dal’Maz Silva">
-<meta name="dcterms.date" content="2026-08-16">
+<meta name="dcterms.date" content="2026-08-17">
 
 <title>Boiling water MPC</title>
 <style>
@@ -143,7 +143,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 16, 2026</p>
+      <p class="date">August 17, 2026</p>
     </div>
   </div>
   
@@ -158,7 +158,7 @@ window.Quarto = {
 <div style="page-break-after: always;"></div>
 <p><em>How to model an evaporation/boiling process?</em></p>
 <p>This notebook summarizes the key ideas of modeling evaporation and/or boiling in simplified systems. The goal of the approach is to be energetically consistent but not really physically formal (at least for now). We start by importing the required tools.</p>
-<div id="afe3dfb8" class="cell" data-execution_count="2">
+<div id="6b433696" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> cantera <span class="im">as</span> ct</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -176,13 +176,13 @@ window.Quarto = {
 \dot{m}_{evap} = \frac{\dot{m}_{max}}{1 + \exp\left[-k\left(T-T_{b}\right)\right]}\qquad\left[{kg}\cdotp{m}^{-2}\cdotp{s}^{-1}\right]
 \]</span></p>
 <p>Parameter <span class="math inline">\(T_b\)</span> is not boiling point, but a value below that so that saturation is reached at boiling and the breadth of the dispersion is given by <span class="math inline">\(k\)</span>. In code that means:</p>
-<div id="083c20e0" class="cell" data-execution_count="3">
+<div id="bec11f3d" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaporation_rate(T, scale, Tb<span class="op">=</span><span class="fl">368.0</span>, k<span class="op">=</span><span class="fl">2.0</span>):</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Hypotethical evaporation rate [kg/(m².s)]. """</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> scale <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">+</span> np.exp(<span class="op">-</span>k <span class="op">*</span> (T <span class="op">-</span> Tb)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The plot below displays the curve above with default parameters for better understanding.</p>
-<div id="3699ae13" class="cell" data-execution_count="4">
+<div id="31ffe76e" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="at">@MajordomePlot.new</span>(shape<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">1</span>), size<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_evaporation_rate(plot<span class="op">=</span><span class="va">None</span>):</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Wrap the plotting of `evaporation_rate`. """</span></span>
@@ -190,17 +190,16 @@ window.Quarto = {
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> evaporation_rate(T, scale<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plot.subplots()</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    fig.dpi <span class="op">=</span> <span class="dv">300</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(T, r, c<span class="op">=</span><span class="st">"k"</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_xlabel(<span class="st">"Temperature [K]"</span>)</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Evaporation rate [kg/(m².K)]"</span>)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plot_evaporation_rate()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(T, r, c<span class="op">=</span><span class="st">"k"</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_xlabel(<span class="st">"Temperature [K]"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Evaporation rate [kg/(m².K)]"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plot_evaporation_rate()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="boiling-water-mpc_files/figure-html/cell-4-output-1.png" width="1453" height="1152" class="figure-img"></p>
+<p><img src="boiling-water-mpc_files/figure-html/cell-4-output-1.png" width="388" height="306" class="figure-img"></p>
 <figcaption>Illustration of the evaporation rate as a function of temperature for water.</figcaption>
 </figure>
 </div>
@@ -222,7 +221,7 @@ window.Quarto = {
 \dot{m}_{evap}=\dfrac{\dot{q}_{in}}{L}
 \]</span></p>
 <p>To wrap-up we still need the properties of water, given below:</p>
-<div id="51c0cd70" class="cell" data-execution_count="5">
+<div id="de5aea49" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Water specific heat [J/(kg.K)].</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>cp_w <span class="op">=</span> <span class="fl">4180.0</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -230,7 +229,7 @@ window.Quarto = {
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>L_w <span class="op">=</span> <span class="fl">2257166.0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Let’s put the system of ODE’s in form of code (for an area of 1 m²). The Heaviside approximation given by <code>active</code> simply avoid some overflows during model evaluation near the end.</p>
-<div id="7dda3a39" class="cell" data-execution_count="6">
+<div id="f72c0c36" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> model(t, x, q_in, mtol):</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Model for testing the approach. """</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Unpack solution variables.</span></span>
@@ -246,7 +245,7 @@ window.Quarto = {
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [active <span class="op">*</span> mdot, active <span class="op">*</span> Tdot]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Because simulating this system for negative masses has no meaning, we add a stop criteria.</p>
-<div id="98219aba" class="cell" data-execution_count="7">
+<div id="9a4c4b5d" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> stop_criteria_mT:</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Stop simulation when evaporation finishes. """</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    terminal <span class="op">=</span> <span class="va">True</span></span>
@@ -257,23 +256,22 @@ window.Quarto = {
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x[<span class="dv">0</span>] <span class="op">-</span> mtol</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>A function for plotting the integration of the model is also provided.</p>
-<div id="f6456c3c" class="cell" data-execution_count="8">
+<div id="70783feb" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="at">@MajordomePlot.new</span>(shape<span class="op">=</span>(<span class="dv">2</span>, <span class="dv">1</span>), size<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">6</span>))</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_pot_boiling(t, m, T, plot<span class="op">=</span><span class="va">None</span>):</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Plot results from pot boiling experiment. """</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plot.subplots()</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    fig.dpi <span class="op">=</span> <span class="dv">300</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(t, T)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_xlabel(<span class="st">"Time [s]"</span>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Temperature [K]"</span>)</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].plot(t, m)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].set_xlabel(<span class="st">"Time [s]"</span>)</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].set_ylabel(<span class="st">"Mass [kg]"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(t, T)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_xlabel(<span class="st">"Time [s]"</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Temperature [K]"</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].plot(t, m)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].set_xlabel(<span class="st">"Time [s]"</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].set_ylabel(<span class="st">"Mass [kg]"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In the cell below you can play with heat input and initial conditions to investigate their effect.</p>
-<div id="8f28275f" class="cell" data-execution_count="9">
+<div id="bd17d9fb" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tolerance for mass [kg].</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>mtol <span class="op">=</span> <span class="fl">1.0e-06</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -302,7 +300,7 @@ window.Quarto = {
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="boiling-water-mpc_files/figure-html/cell-9-output-1.png" width="2653" height="1752" class="figure-img"></p>
+<p><img src="boiling-water-mpc_files/figure-html/cell-9-output-1.png" width="708" height="466" class="figure-img"></p>
 <figcaption>Results from pot boiling simulation.</figcaption>
 </figure>
 </div>
@@ -324,12 +322,12 @@ window.Quarto = {
 c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 \]</span></p>
 <p>Notice that we could solve only 2 equations by making a transformation in mass equation definition, but that would shadow the generality of the model for any number of species. Now we only need the specific heat of the solid, here <span class="math inline">\(SiO_2\)</span> and we are ready to go.</p>
-<div id="e7067844" class="cell" data-execution_count="10">
+<div id="028c642f" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Silica specific heat [J/(kg/k)].</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>cp_b <span class="op">=</span> <span class="fl">742.34</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In what follows the <code>active</code> takes the actual meaning it should (not only the auxiliary role in previous example): stop mass loss once the mass fraction of water falls to zero. Also notice that we are clipping the bounds of <code>Y</code> so that the solver does not try anything unphysical.</p>
-<div id="dc43db0e" class="cell" data-execution_count="11">
+<div id="70a2e14d" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> model(t, x, q_in, mtol):</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Model for testing the approach. """</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Unpack solution variables.</span></span>
@@ -355,7 +353,7 @@ c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 <span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [mdot, Ydot, Tdot]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If you want to stop the simulation, now that must be done with mass fraction instead of mass. This will be disabled by default in the example the follows.</p>
-<div id="80b797cb" class="cell" data-execution_count="12">
+<div id="68b35b58" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> stop_criteria_mYT:</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Stop simulation when evaporation finishes. """</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    terminal <span class="op">=</span> <span class="va">True</span></span>
@@ -369,7 +367,7 @@ c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 <span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fl">1.0</span> <span class="cf">if</span> <span class="va">self</span>._disabled <span class="cf">else</span> (x[<span class="dv">1</span>] <span class="op">-</span> mtol)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Again we provide a helper plotting function.</p>
-<div id="f9f6a440" class="cell" data-execution_count="13">
+<div id="324fb806" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="at">@MajordomePlot.new</span>(shape<span class="op">=</span>(<span class="dv">3</span>, <span class="dv">1</span>), size<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">8</span>), sharex<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_drying_solids(t, m, Y, T, plot<span class="op">=</span><span class="va">None</span>):</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Plot results from solids drying experiment. """</span></span>
@@ -388,7 +386,7 @@ c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 <span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">2</span>].set_ylabel(<span class="st">"Mass [kg]"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>And finally the simulation can be run.</p>
-<div id="7b3bfe69" class="cell" data-execution_count="14">
+<div id="f21bb7fc" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tolerance for mass [kg].</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>mtol <span class="op">=</span> <span class="fl">1.0e-06</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -427,7 +425,7 @@ c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 <section id="energy-consistency-only" class="level2">
 <h2 class="anchored" data-anchor-id="energy-consistency-only">Energy consistency only</h2>
 <p>In some cases we don’t need to compute mass conservation but are only interested in energy consistency. What follows present some tricks for reaching that by playing with the expression for specific heat. For the illustration purposes we use a <code>ct.Water</code> object in a <code>ct.SolutionArray</code> for computing properties. A temperature range representative of water from room temperature to gas is considered here. All the properties in what follow are assumed to be at constant pressure, so it is omitted in the names.</p>
-<div id="93267e7e" class="cell" data-execution_count="15">
+<div id="bbb65e1c" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">200</span>, <span class="dv">4000</span>) <span class="op">+</span> <span class="fl">273.16</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>liq <span class="op">=</span> ct.Water()</span>
@@ -437,7 +435,7 @@ c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>sol.TP <span class="op">=</span> T, ct.one_atm <span class="op">*</span> np.ones_like(T)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Prior to any computations we recover the quantities of interest, specific heat <code>cp</code> and specific enthalpy <code>hm</code>. Notice that given the <code>mass</code> basis declared before these quantities are per mass unit [kg].</p>
-<div id="08cf3ec4" class="cell" data-execution_count="16">
+<div id="9b60d0c5" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>cp_ref <span class="op">=</span> sol.cp</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>hm_ref <span class="op">=</span> sol.h</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -455,7 +453,7 @@ c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 <p>Do not use equality here because you might get a <em>zero</em> depending on how <code>T</code> was constructed.</p>
 </div>
 </div>
-<div id="7304c113" class="cell" data-execution_count="17">
+<div id="a3dca879" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>Tb <span class="op">=</span> <span class="fl">373.15</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>hb <span class="op">=</span> hm_ref[(T <span class="op">&lt;</span> Tb)][<span class="op">-</span><span class="dv">1</span>]</span>
@@ -463,12 +461,12 @@ c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>dh <span class="op">=</span> ha <span class="op">-</span> hb</span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>dh</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="40">
+<div class="cell-output cell-output-display" data-execution_count="16">
 <pre><code>np.float64(2257166.191140862)</code></pre>
 </div>
 </div>
 <p>Next step is to compute a <em>modified</em> specific heat by incorporating a smeared latent heat contribution around the boiling point. It must be emphasized that the breadth of the smearing depends on how you intend to integrate the equations later. It is funny and reconforting to see that the ration on the r.h.s. here is the definition of specific heat at the limit <span class="math inline">\(\Delta{}T\rightarrow{}0\)</span>.</p>
-<div id="c2f10fb1" class="cell" data-execution_count="18">
+<div id="de54abff" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>dT <span class="op">=</span> <span class="dv">10</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>cp_mod <span class="op">=</span> cp_ref.copy()</span>
@@ -479,7 +477,7 @@ c_{p}=Yc_{p,w} + (1-Y)c_{p,b}
 H(T) = \Delta^{f}H(T_{ref}) + \int_{T_{ref}}^{T}c_{P}(T)dT
 \]</span></p>
 <p>Thus we perform this integration numerically and check against a relative tolerance.</p>
-<div id="341fc365" class="cell" data-execution_count="19">
+<div id="ec023f1e" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>rtol <span class="op">=</span> <span class="fl">5.0e-04</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>hm_mod <span class="op">=</span> [<span class="dv">0</span>, <span class="op">*</span>cumtrapz(cp_mod, T)]</span>
@@ -490,33 +488,32 @@ H(T) = \Delta^{f}H(T_{ref}) + \int_{T_{ref}}^{T}c_{P}(T)dT
 <span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>error <span class="op">=</span> <span class="bu">abs</span>((dh_mod <span class="op">-</span> dh_ref) <span class="op">/</span> dh_ref)</span>
 <span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>error <span class="op">&lt;</span> rtol, error</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="42">
+<div class="cell-output cell-output-display" data-execution_count="18">
 <pre><code>(np.True_, np.float64(0.0002506557315553776))</code></pre>
 </div>
 </div>
 <p>From that we see that total enthalpy change is conserved to within approximately 0.02%, what is good for our purposes. Finally we display a comparison plot of the reference curves and their modified version.</p>
-<div id="f313051f" class="cell" data-execution_count="20">
+<div id="4197b5db" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="at">@MajordomePlot.new</span>(shape<span class="op">=</span>(<span class="dv">2</span>, <span class="dv">1</span>), size<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">6</span>))</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_results(T, hm_ref, hm_mod, plot<span class="op">=</span><span class="va">None</span>):</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plot.subplots()</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    fig.dpi <span class="op">=</span> <span class="dv">300</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].plot(T, hm_ref, label<span class="op">=</span><span class="st">"Reference"</span>)</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].plot(T, hm_mod, label<span class="op">=</span><span class="st">"Modified"</span>)</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].set_xlabel(<span class="st">"Temperature [K]"</span>)</span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].set_ylabel(<span class="st">"Specific enthalpy [J/kg]"</span>)</span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].legend(loc<span class="op">=</span><span class="dv">2</span>, fontsize<span class="op">=</span><span class="st">"small"</span>)</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(T, cp_ref<span class="op">/</span><span class="dv">1000</span>, label<span class="op">=</span><span class="st">"Reference"</span>)</span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(T, cp_mod<span class="op">/</span><span class="dv">1000</span>, label<span class="op">=</span><span class="st">"Modified"</span>)</span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Specific heat capacity [kJ/kg/K]"</span>)</span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].legend(loc<span class="op">=</span><span class="dv">2</span>, fontsize<span class="op">=</span><span class="st">"small"</span>)</span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>plot_results(T, hm_ref, hm_mod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].plot(T, hm_ref, label<span class="op">=</span><span class="st">"Reference"</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].plot(T, hm_mod, label<span class="op">=</span><span class="st">"Modified"</span>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].set_xlabel(<span class="st">"Temperature [K]"</span>)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].set_ylabel(<span class="st">"Specific enthalpy [J/kg]"</span>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].legend(loc<span class="op">=</span><span class="dv">2</span>, fontsize<span class="op">=</span><span class="st">"small"</span>)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(T, cp_ref<span class="op">/</span><span class="dv">1000</span>, label<span class="op">=</span><span class="st">"Reference"</span>)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(T, cp_mod<span class="op">/</span><span class="dv">1000</span>, label<span class="op">=</span><span class="st">"Modified"</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Specific heat capacity [kJ/kg/K]"</span>)</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].legend(loc<span class="op">=</span><span class="dv">2</span>, fontsize<span class="op">=</span><span class="st">"small"</span>)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>plot_results(T, hm_ref, hm_mod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="boiling-water-mpc_files/figure-html/cell-20-output-1.png" width="2653" height="1778" class="figure-img"></p>
+<p><img src="boiling-water-mpc_files/figure-html/cell-20-output-1.png" width="708" height="472" class="figure-img"></p>
 <figcaption>Comparison of the reference and modified specific heat capacity and specific enthalpy for liquid water.</figcaption>
 </figure>
 </div>
@@ -528,7 +525,7 @@ H(T) = \Delta^{f}H(T_{ref}) + \int_{T_{ref}}^{T}c_{P}(T)dT
 H(x, x_0) = \frac{1 + sign(x-x_0)}{2}
 \]</span></p>
 <p>which evaluates to 1 when <span class="math inline">\(x&gt;x_0\)</span> and 0 when <span class="math inline">\(x&lt;x_0\)</span> (the value at the equality is implementation dependent, often set to 0.5). Below we illustrate the computation of a square hump around zero.</p>
-<div id="1b91e3bf" class="cell" data-execution_count="21">
+<div id="78f640f0" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="at">@MajordomePlot.new</span>(size<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">4</span>))</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_step(plot<span class="op">=</span><span class="va">None</span>):</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1000</span>)</span>
@@ -537,25 +534,24 @@ H(x, x_0) = \frac{1 + sign(x-x_0)}{2}
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    g <span class="op">=</span> g1 <span class="op">-</span> g0</span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plot.subplots()</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    fig.dpi <span class="op">=</span> <span class="dv">300</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(t, g.full().ravel())</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_xlabel(<span class="st">"Independent variable"</span>)</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Activation step"</span>)</span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylim(<span class="op">-</span><span class="fl">0.02</span>, <span class="fl">1.02</span>)</span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plot_step()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(t, g.full().ravel())</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_xlabel(<span class="st">"Independent variable"</span>)</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Activation step"</span>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].set_ylim(<span class="op">-</span><span class="fl">0.02</span>, <span class="fl">1.02</span>)</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plot_step()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="boiling-water-mpc_files/figure-html/cell-21-output-1.png" width="2653" height="1152" class="figure-img"></p>
+<p><img src="boiling-water-mpc_files/figure-html/cell-21-output-1.png" width="707" height="306" class="figure-img"></p>
 <figcaption>Computation of a Heaviside function.</figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>Now we define the change temperatures <code>tc</code> and the increments <code>dxy</code> for the steps.</p>
-<div id="5c9542c7" class="cell" data-execution_count="22">
+<div id="c29ba891" class="cell" data-execution_count="22">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>tc0 <span class="op">=</span> Tb <span class="op">-</span> dT <span class="op">/</span> <span class="dv">2</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>tc1 <span class="op">=</span> Tb</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>tc2 <span class="op">=</span> Tb <span class="op">+</span> dT <span class="op">/</span> <span class="dv">2</span></span>
@@ -570,7 +566,7 @@ H(x, x_0) = \frac{1 + sign(x-x_0)}{2}
 <span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>d23 <span class="op">=</span> c3 <span class="op">-</span> c2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Using a sequence of stepwise functions we reconstruct the original specific heat function. By incremental changes one also find some <em>analytical</em> enthalpy function.</p>
-<div id="fee1eb08" class="cell" data-execution_count="23">
+<div id="e48f5e99" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>T_ref <span class="op">=</span> <span class="fl">273.16</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>Ts <span class="op">=</span> SX.sym(<span class="st">"Ts"</span>)</span>
@@ -592,23 +588,23 @@ H(x, x_0) = \frac{1 + sign(x-x_0)}{2}
 <span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>hm_int <span class="op">=</span> hm_w(T).full().ravel() <span class="op">+</span> hm_ref[<span class="dv">0</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Energy conservation in this simplified approach - we are piecewise neglecting <span class="math inline">\(c_P=c_P(T)\)</span> - we find it is about 10 times better!</p>
-<div id="1a6d5179" class="cell" data-execution_count="24">
+<div id="44c6da2a" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>dh_ref <span class="op">=</span> hm_ref[<span class="op">-</span><span class="dv">1</span>] <span class="op">-</span> hm_ref[<span class="dv">0</span>]</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>dh_int <span class="op">=</span> hm_int[<span class="op">-</span><span class="dv">1</span>] <span class="op">-</span> hm_int[<span class="dv">0</span>]</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>error <span class="op">=</span> <span class="bu">abs</span>((dh_int <span class="op">-</span> dh_ref) <span class="op">/</span> dh_ref)</span>
 <span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>error <span class="op">&lt;</span> rtol<span class="op">/</span><span class="dv">10</span>, error</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="47">
+<div class="cell-output cell-output-display" data-execution_count="23">
 <pre><code>(np.True_, np.float64(4.6647226319527534e-05))</code></pre>
 </div>
 </div>
 <p>A graphic displays all the curves superimposed.</p>
-<div id="284039ce" class="cell" data-execution_count="25">
+<div id="6aba2cf4" class="cell" data-execution_count="25">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="at">@MajordomePlot.new</span>(shape<span class="op">=</span>(<span class="dv">2</span>, <span class="dv">1</span>), size<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">6</span>))</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_results(<span class="op">*</span>args, plot<span class="op">=</span><span class="va">None</span>):</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    T, hm_ref, hm_mod, hm_int, cp_int, cp_mod <span class="op">=</span> args</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plot.subplots()</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    fig.dpi <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plot.subplots()</span>
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(T, hm_int, label<span class="op">=</span><span class="st">"Symbolic"</span>)</span>
 <span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(T, hm_mod, label<span class="op">=</span><span class="st">"Modified"</span>)</span>
@@ -626,7 +622,7 @@ H(x, x_0) = \frac{1 + sign(x-x_0)}{2}
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="boiling-water-mpc_files/figure-html/cell-25-output-1.png" width="2653" height="1752" class="figure-img"></p>
+<p><img src="boiling-water-mpc_files/figure-html/cell-25-output-1.png" width="708" height="466" class="figure-img"></p>
 <figcaption>Comparison of the reference and modified specific heat capacity and specific enthalpy for liquid water.</figcaption>
 </figure>
 </div>
