@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Walter Dal’Maz Silva">
+<meta name="dcterms.date" content="2026-08-18">
+
+<title>Kompanion Environment</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="kompanion-environment_files/libs/clipboard/clipboard.min.js"></script>
+<script src="kompanion-environment_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="kompanion-environment_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="kompanion-environment_files/libs/quarto-html/popper.min.js"></script>
+<script src="kompanion-environment_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="kompanion-environment_files/libs/quarto-html/anchor.min.js"></script>
+<link href="kompanion-environment_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="kompanion-environment_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="kompanion-environment_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="kompanion-environment_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="kompanion-environment_files/libs/bootstrap/bootstrap-efbb37e9afcc02144ebbc7afd12a776f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="kompanion-environment.pdf"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Kompanion Environment</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Walter Dal’Maz Silva </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 18, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This it the <em>Kompanion companion</em> notes!</p>
+<p>Kompanion is a portable setup toolbox for working in Scientific Computing under Windows. It is designed to be used in a laptop with no or minor administrator rights, and it allows you to install and use a wide range of tools and libraries for scientific computing without the need for a full installation.</p>
+<p>For more details, please check our repository at <a href="https://github.com/wallytutor/kompanion">GitHub</a>. You might also be interested in <a href="https://wallytutor.github.io/python-majordome/">Majordome</a>, a project closely related to Kompanion (which acts as its build environment and provides installation of several packages it interacts with). Contributions and corrections are welcome, please reach me by <a href="mailto:walter.dalmazsilva.manager@gmail.com">mail</a>.</p>
+<p><strong>Important:</strong> before using this, please be aware that your company/university probably forbids the use of portable tools outside sandboxed systems. It is your responsability to use this toolbox only in systems where you are allowed to. The developper does not hold any resposibility on your failure to respect your local regulations.</p>
+<section id="foreword" class="level2">
+<h2 class="anchored" data-anchor-id="foreword">Foreword</h2>
+<p>For many years I have been trying to <em>work</em>… well, when you are in scientific computing you quickly discover that IT knows nothing about it and even in academic settings these guys are unaware of your needs. Those who are supposed to help you thrive are actually stopping you from even trying to do things. The <em>corporate</em> rules are too restrictive for any creative mind; <em>governance</em> means failure.</p>
+<p>As a natural rebel, I learned everything to by-pass rules. Early in my career, when I was working only in Linux systems, that was pretty easy as you can compile your code and that is not against the rules at all in most settings. That allowed me to develop a solid background in compiling the code of others, what is not always trivial. When reading the <em>README</em> and <em>INSTALL</em> projects of major scientific computing projects, you quickly realize the inconsistencies in procedures and the available flags for compilation. When faced many and many times with this sort of issue, you are obliged to master at least <code>Makefiles</code> and <code>CMakefiles</code>. The classical <code>Makefiles</code> may be obscure with some macro expansions doing weird stuff, while <code>CMakefiles</code> can be so huge that it takes years to fully create a grasp of them.</p>
+<p>Next, when moving into the corporate world, you will at some point be forced to go into Windows, and that was the case for me too. About 10 years ago, before the <em>big-bullshit era</em> of AI, the scientific computing for Windows was pretty poor. Even Python was quite limited, you most certainly needed to use Anaconda at that time. Most scientific libraries are harder to compile under Windows and you will probably learn about Cygwin and MSYS2 to try to overcome the issues, as getting a proper license of Windows compiler will probably be difficult unless that is your core job as a developer.</p>
+<p>The other part of the nightmare concerns <em>PortableApps</em>: you can’t simply trust those packages, and you don’t want to get in trouble by bringing some viruses home. To be avoided at all costs. That’s when you learn that many installers are simply zip packages and that you can extract them somewhat. It was that that gave rise to <em>Kompanion</em> (it had so many names and repositories over the years, but now we will stick with it): allow people to do scientific computing in a laptop with no or minor (needed to run codes in parallel) administrator rights. I discuss about that in more detail in a dedicated section below, and I strongly encourage you to read that to understand a bit what is happening under <code>kompanion.ps1</code> script without reading its thousands lines of <em>copy-paste</em> code.</p>
+</section>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<section id="before-you-start" class="level3">
+<h3 class="anchored" data-anchor-id="before-you-start">Before you start</h3>
+<p>The minimal Kompanion setup includes:</p>
+<ul>
+<li>Visual Studio Code</li>
+<li>LiteXL</li>
+<li>Git</li>
+<li>7-Zip</li>
+<li>Curl</li>
+<li>Quarto</li>
+<li>uv</li>
+</ul>
+<p>Some programming languages are also included by default and always:</p>
+<ul>
+<li>.NET (C#, F#, VB.NET)</li>
+<li>MingW64 (C/C++, Fortran)</li>
+<li>NodeJS</li>
+<li>Rust</li>
+<li>Python (WinPython)</li>
+</ul>
+<p>If that’s all you need, simply open a PowerShell terminal (preferred over the legacy <em>Windows PowerShell</em>) at this directory and run <code>.\kompanion.ps1</code> (or <code>.\kompanion.ps1 -RebuildOnStart</code> if the first run fails) to install the defaults. In most cases this will work out of the box, as the links for these tools are from well known sources and are generally not filtered by corporate firewalls. If that fails, you might need to build Kompanion elsewhere and drop it in a USB drive to transfer to your workstation.</p>
+<p>Installing the basic setup before tweaking the packages you need is a good choice, as generally you will have no proper code editor (other than the trashy Notepad) to configure <code>kompanion.json</code> file, as described in what follows. Also, if there are any errors, a minimal configuration will produce less messages and it will be easier to debug.</p>
+<p>After succeding the preliminary installation, you can start tweaking the packages you need. For that, run <code>.\kompanion.ps1 -RunVsCode</code> from this directory. That will start VSCode with the current project open. Under <code>.kompanion</code> directory you will find a <code>kompanion-sample.json</code> which allows one to configure packages to be installed. Copy this file and rename it to <code>kompanion.json</code>, where you can play with the <code>true/false</code> flags for selecting packages. After saving the file run <code>.\kompanion.ps1 -RebuildOnStart</code> once again and wait for completion.</p>
+<ul>
+<li>General purpose tools:</li>
+</ul>
+<div id="a63fc569" class="cell" data-execution_count="3">
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div style="width: 300px;">
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">Tool</th>
+<th data-quarto-table-cell-role="th">Install</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><div style="width:150px">
+drawio
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+ffmpeg
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+imagemagick
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+inkscape
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+jabref
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+lessmsi
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+logseq
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+miktex
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+nvim
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+pandoc
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+poppler
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+tabby
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+zettlr
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<ul>
+<li>Programming languages:</li>
+</ul>
+<div id="0659e0e5" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div style="width: 300px;">
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">Tool</th>
+<th data-quarto-table-cell-role="th">Install</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><div style="width:150px">
+coq
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+elm
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+erlang
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+haskell
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+julia
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+octave
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+perl
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+racket
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+rlang
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<ul>
+<li>Scientific libraries:</li>
+</ul>
+<div id="80f3e4fd" class="cell" data-execution_count="5">
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div style="width: 300px;">
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">Tool</th>
+<th data-quarto-table-cell-role="th">Install</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><div style="width:150px">
+blender
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+dwsim
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+elmer
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+freecad
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+freefem
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+gmsh
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+gnuplot
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+meshlab
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+ollama
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+opencascade
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+paraview
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+prepomax
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+radcal
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="even">
+<td><div style="width:150px">
+su2
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+<tr class="odd">
+<td><div style="width:150px">
+tesseract
+</div></td>
+<td><div style="width:150px">
+False
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p><strong>Note:</strong> please notice that if some package fails to download, <em>e.g.</em> firewall issues, you might need to manually clean the respective folder under <code>.kompanion\bin</code> before running again. Simply delete the directory named after the failed package. You may also need to delete the file named after that package under <code>.kompanion\temp</code> as there be a partial download there.</p>
+<p>If you want to save some important disk space, after installation you can delete the whole <code>.kompanion\temp</code>.</p>
+<p>Now you should be good to go!</p>
+</section>
+<section id="automatic-sourcing" class="level3">
+<h3 class="anchored" data-anchor-id="automatic-sourcing">Automatic sourcing</h3>
+<p>This section describes how to get Kompanion automatically sourced in your user profile for all PowerShell sessions. Start by creating an environment variable <code>KOMPANION_SOURCE</code> pointing to the <em>full-path</em> of file <code>kompanion.ps1</code>.</p>
+<p>From Windows menu, search for <em>Environment variables for your account</em> and open it. Click on <em>New</em> create a variable named <code>KOMPANION_SOURCE</code>; use the <em>Browse file…</em> button to select the <code>kompanion.ps1</code> file to get the right path.</p>
+<p>For instance, if you are called like me and cloned this repository at <code>GitHub\kompanion</code> under your profile, then its value should be <code>C:\Users\walter\GitHub\kompanion\kompanion.ps1</code></p>
+<p>Next, start PowerShell and identify the path to your user profile:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode ps1 code-with-copy"><code class="sourceCode powershell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">echo</span> <span class="va">$PROFILE</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If that file does not exist, create it with:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode ps1 code-with-copy"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">New-Item</span> <span class="op">-</span>ItemType File <span class="op">-</span>Path <span class="va">$PROFILE</span> <span class="op">-</span>Force</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Now you can run <code>notepad $PROFILE</code> to open it and append the following lines:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode ps1 code-with-copy"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span><span class="fu">Test-Path</span> <span class="va">$env</span><span class="op">:</span><span class="va">KOMPANION_SOURCE</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span> <span class="va">$env</span><span class="op">:</span><span class="va">KOMPANION_SOURCE</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Uncomment the following if you want the terminal to start at</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># the root of this repository; useful for development.</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># cd "$env:KOMPANION_DIR"</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Write-Host</span> <span class="st">"KOMPANION_SOURCE not found at '</span><span class="va">$env</span><span class="op">:</span><span class="va">KOMPANION_SOURCE</span><span class="st">'"</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-note callout-titled" title="About Antigravity">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>About Antigravity
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For some reason, when running Google Antigravity from within a shell with Kompanion sourced, it <em>believes</em> the override of home directory performed by Kompanion and variable <code>$PROFILE</code> points to Kompanion’s root directory. You can create a directory <code>Documents\PowerShell</code> located at Kompanion root and place the configuration file there. For getting the right path/file name, run <code>echo $PROFILE</code> from a terminal running from Antigravity.</p>
+</div>
+</div>
+<p>Now all PowerShell sessions will automatically source Kompanion, and you can start using it right away. You can run <code>Kode</code> from any directory to open the root of this repository in VSCode.</p>
+</section>
+<section id="graphical-user-interface" class="level3">
+<h3 class="anchored" data-anchor-id="graphical-user-interface">Graphical user interface</h3>
+<p>Kompanion includes a self-contained WPF application for Windows that scans <code>$env:KOMPANION_REPO</code> directory for Git repositories, and lets you launch VS Code, pull, or push each one with a single click. You can find the source code in the <code>app</code> directory of this repository. To build the application you need to enable .NET support in Kompanion (see <code>kompanion-sample.json</code>) and have added <code>$env:KOMPANION_SOURCE</code> to your user environment variables as described in the previous section. Then you can follow instructions in the <code>README.md</code> file of that directory to build and run the application. You can pin the resulting <code>KompanionUI.exe</code> to your taskbar for easy access.</p>
+</section>
+<section id="user-configuration" class="level3">
+<h3 class="anchored" data-anchor-id="user-configuration">User configuration</h3>
+<p>Other than the <code>kompanion.json</code> file, you can also create a <code>.kompanion/psrc.ps1</code> file to add your own custom functions and aliases. This file will be automatically sourced after the main <code>kompanion.ps1</code> script, so you can use it to customize your environment without modifying the main script. Also notice that upon start, Kompanion will dump all its generated environment variables to <code>.kompanion/envs.ps1</code>. You can use that file as a reference to know which variables are available for your own customizations.</p>
+</section>
+<section id="known-limitations" class="level3">
+<h3 class="anchored" data-anchor-id="known-limitations">Known limitations</h3>
+<ul>
+<li><p>Windows MPI support (as required by SU2 in their distributed version) still requires administrator rights, as you need to install the <a href="https://learn.microsoft.com/en-us/message-passing-interface/microsoft-mpi">Microsoft MPI</a>.</p></li>
+<li><p>You cannot pin the editor to the taskbar (because of how sourcing environment works), but you can create a shortcut to <code>kode.vbs</code> in your desktop.</p></li>
+</ul>
+</section>
+</section>
+<section id="how-does-it-work" class="level2">
+<h2 class="anchored" data-anchor-id="how-does-it-work">How does it work?</h2>
+<p><em>Kompanion</em> is intended to be used as a portable environment with <em>almost</em> all batteries included. Applications are placed under <code>.kompanion/bin/</code> directory and all configuration of paths and other required environment variables are provided by <em>kompanion.ps1</em> script.</p>
+<p>It mostly revolves around <a href="https://code.visualstudio.com/download">VS Code</a>. You launch the editor through a dedicated script and everything else is available in its terminal. That said, the whole of the ecosystem is command line based - but this is scientific computing, if you don’t know command line you are in the wrong job. If you followed the instructions to source Kompanion from $PROFILE, then you can also launch the terminal from the start menu and everything will be available there as well.</p>
+<p>It is intended to leave minimal track on host system (probably a few files and directories on your user home directory or under <em>AppData</em>), but this is not enforced in its development, so take care if you are not allowed to execute some software in a given computer.</p>
+</section>
+<section id="other-possibly-supported-applications" class="level2">
+<h2 class="anchored" data-anchor-id="other-possibly-supported-applications">Other possibly supported applications</h2>
+<p>The following packages are not currently included in Kompanion, but they are known to be somewhat portable and they might be added in the future. Those displayed in italics cannot be currently automated, but they can be installed in a machine then copied to Kompanion (ongoing investigation on how to automate that).</p>
+<p><!-- Also check the @sec-selection-of-tools for a software selection that might be of interest for you and maybe not listed here. --></p>
+<ul>
+<li>DualSPHysics</li>
+<li>Dyssol</li>
+<li>Fiji</li>
+<li>FileZilla</li>
+<li><em>FreeFEM++</em></li>
+<li>gnuplot</li>
+<li>Graphviz</li>
+<li><a href="https://iperf.fr/">iperf</a></li>
+<li>Ipopt</li>
+<li>Jamovi</li>
+<li>JASP</li>
+<li>lazarus</li>
+<li><a href="https://github.com/lite-xl/lite-xl">lite-xl</a></li>
+<li>LAMMPS</li>
+<li>MFiX</li>
+<li>MSYS2</li>
+<li>MUSEN</li>
+<li><a href="https://notepad-plus-plus.org/downloads/">Notepad++</a></li>
+<li>Octave</li>
+<li>OpenCALPHAD</li>
+<li>OpenModelica</li>
+<li>Orange3</li>
+<li>Portable LISP</li>
+<li>puTTy</li>
+<li>Ruby</li>
+<li>Rufus (requires admin privileges to be used though)</li>
+<li>SALOME (needs to be manually downloaded)</li>
+<li><em>Scilab</em></li>
+<li>strawberry-perl</li>
+<li>VMD</li>
+<li><a href="https://studio.zerobrane.com/">ZeroBraneStudio</a></li>
+<li><a href="https://www.zettlr.com/">Zettlr</a></li>
+<li><a href="https://xpra.org/index.html">Xpra</a></li>
+</ul>
+</section>
+<section id="software-specific-instructions" class="level2">
+<h2 class="anchored" data-anchor-id="software-specific-instructions">Software specific instructions</h2>
+<section id="dualsphysics" class="level3">
+<h3 class="anchored" data-anchor-id="dualsphysics">DualSPHysics</h3>
+<p>For <a href="https://dual.sphysics.org/downloads/">DualSPHysics</a> one might also want to install <a href="https://github.com/DualSPHysics/DesignSPHysics">this FreeCAD addon</a> and <a href="https://github.com/EPhysLab-UVigo/VisualSPHysics">this Blender addon</a>.</p>
+</section>
+<section id="gmsh" class="level3">
+<h3 class="anchored" data-anchor-id="gmsh">gmsh</h3>
+<p>Because it was chosen that SDK version of gmsh was more adapted to integrate Kompanion, if you want to be able to pin the executable to your taskbar you need to copy the DLL from its <code>lib/</code> directory to <code>bin/</code>. If you think you will not need Python/Julia interfaces of gmsh, then you can move the DLL instead to save ~80MB of disk (and you can always install gmsh with pip for those cases).</p>
+</section>
+<section id="graphviz" class="level3">
+<h3 class="anchored" data-anchor-id="graphviz">Graphviz</h3>
+<p>If the first time you run <code>dot</code> you get a message as</p>
+<pre class="text"><code>There is no layout engine support for "dot"
+Perhaps "dot -c" needs to be run (with installer's privileges) to register the plugins?</code></pre>
+<p>Simply run <code>dot -c</code> as suggested and it should work fine (without admin privileges).</p>
+</section>
+<section id="mfix" class="level3">
+<h3 class="anchored" data-anchor-id="mfix">MFiX</h3>
+<p>This package is <a href="https://mfix.netl.doe.gov/products/mfix/download/">installed</a> in a separate environment and not added to the toolbox path; that is because other Python environments could interact with each other and lead to unpredictable behavior. The following instructions are provided:</p>
+<ul>
+<li><p>Install <a href="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe">miniforge3</a> under a dedicated directory.</p></li>
+<li><p>Add a script with the following content to launch miniforge console:</p></li>
+</ul>
+<pre class="shell"><code>%windir%\system32\cmd.exe "/K" ^
+    %~dp0\miniforge3\Scripts\activate.bat ^
+    %~dp0\miniforge3</code></pre>
+<ul>
+<li>Go to the <a href="https://mfix.netl.doe.gov/mfix/download-mfix">downloads</a> page, login and copy the personal installation command that looks like the following:</li>
+</ul>
+<pre class="shell"><code>conda create -n mfix-&lt;version&gt; ^
+    mfix==&lt;version&gt;            ^
+    mfix-doc==&lt;version&gt;        ^
+    mfix-gui==&lt;version&gt;        ^
+    mfix-solver==&lt;version&gt;     ^
+    mfix-src==&lt;version&gt;        ^
+    -c conda-forge -c          ^
+    https://mfix.netl.doe.gov/s3/&lt;personal-token&gt;//conda/dist</code></pre>
+<ul>
+<li>To run the software activate the created environment and call its executable:</li>
+</ul>
+<pre class="shell"><code>conda activate mfix-&lt;version&gt;
+mfix</code></pre>
+</section>
+</section>
+<section id="creating-a-portable-environment" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-portable-environment">Creating a portable environment</h2>
+<p>This section illustrates the generalities of how do create a portable software toolbox. Before proceding with any installation, make sure to read all the elements provided below; simply trying to follow instructions in a step-by-step fashion will certainly lead to failure and frustration.</p>
+<p>For each of the applications you will install, make sure to perform the following generic steps:</p>
+<ol type="1">
+<li><p>Download the portable version of the application, generally a <code>.zip</code> compressed file, and save it to some temporary location. Sometimes the normal installer of an application already supports portable mode.</p></li>
+<li><p>Extract the compressed file to a dedicated directory. From there, you can move the content to the final location. See the notes below for details about compression practices.</p></li>
+<li><p>Configure the application in a dedicated script or add a routine to the application script that manages all the paths and settings. The latter approach is recommended for putting everything together and is how Kompanion currently works.</p></li>
+</ol>
+<p><strong>Important:</strong> You need to be aware that there are two common practices of compressing (zip) a portable software: (1) some editors place everything in a directory and compress the directory, while others (2) pack everything under the root of the compressed file. Windows built-in system allows your to navigate compressed files as part of the filesystem, so inspect which of the above methods was used. If the later is detected, take care to select the right option to ensure the contents are extracted to a new directory. Several packages are stored directly at <em>zip</em> root and that may be messy to clean if extracted without the above precautions.</p>
+<p><strong>Important:</strong> since setting up the environment may require editing <a href="https://www.tutorialspoint.com/batch_script/index.htm">batch scripts</a>, be aware that to open them you cannot <em>click</em> the file, but <em>right-click</em> and <em>edit</em>, as Windows see these as executables. In these files, lines starting by <code>@REM</code> are seem as comments and generally explain something about what follow them. If you are starting from scratch and do not master batch scripting, prefer learning <a href="https://www.tutorialspoint.com/powershell/index.htm">PowerShell</a> instead, as it is more modern and powerful, and you can easily call PowerShell scripts from batch scripts. It is how the current version of Kompanion is implemented and it is the recommended way to go.</p>
+<section id="initial-setup" class="level3">
+<h3 class="anchored" data-anchor-id="initial-setup">Initial setup</h3>
+<p>These are the required steps to get your system working for the first time:</p>
+<ol type="1">
+<li><p>Go to VS Code <a href="https://code.visualstudio.com/download">download page</a> and get the <code>.zip</code> version for <code>x64</code> system (<code>Arm64</code> is not supported here). Extract it to the binaries directory and copy the path of VS Code directory the set the variable <code>VSCODE_DIR</code>.</p></li>
+<li><p>Go to Git <a href="https://git-scm.com/download/win">download page</a> and select <em>64-bit Git for Windows Portable</em>, download it. Notice that this is not a compressed file <em>per se</em>, but it is desguised as an executable. Double-click it and accept the default <code>PortableGit</code> installation directory. After extraction finishes, move it to binaries directory. Add it to the path by setting the variable <code>GIT_DIR</code> to the path of the directory.</p></li>
+</ol>
+<p><strong>Important:</strong> After installing <code>VS Code</code>, do <strong>NOT</strong> enable its <a href="https://code.visualstudio.com/docs/editor/portable">portable mode</a> because the VBS file for launching it will point to a specific user-data folder.</p>
+<p><strong>Important:</strong> these notes are quite general and skip details. Refer to <code>kompanion.ps1</code> and look for the functions <code>Invoke-Configure*</code> and <code>Invoke-Install*</code> for the exact steps to configure each application.</p>
+</section>
+<section id="programming-languages" class="level3">
+<h3 class="anchored" data-anchor-id="programming-languages">Programming languages</h3>
+<p>The following provides instructions for some languages you might wish to have fully integrated to your environment. For lower level languages, please consider using MSYS2 as described in its dedicated section.</p>
+<section id="python" class="level4">
+<h4 class="anchored" data-anchor-id="python">Python</h4>
+<p>Go to WinPython <a href="https://github.com/winpython/winpython/releases">download page</a> and find the latest version tagged with a <em>Latest</em> green flag (avoid <em>Pre-release</em> versions on top). Expand the <em>Assets</em> and download the <code>.exe</code> version (also a disguised compressed file). Follow steps similar to Git above. See <code>Invoke-ConfigurePython</code> in <code>kompanion.ps1</code> for the configuration of paths and environment variables.</p>
+</section>
+<section id="julia" class="level4">
+<h4 class="anchored" data-anchor-id="julia">Julia</h4>
+<p>Go to Julia <a href="https://julialang.org/downloads/">download page</a> and select the latest stable Windows 64-bit portable version. See <code>Invoke-ConfigureJulia</code> in <code>kompanion.ps1</code> for the configuration of paths and environment variables.</p>
+</section>
+<section id="rust" class="level4">
+<h4 class="anchored" data-anchor-id="rust">Rust</h4>
+<p>Download <a href="https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-gnu/rustup-init.exe">rustup-init</a> following the installation. See <code>Invoke-ConfigureRust</code> in <code>kompanion.ps1</code> for the configuration of paths and environment variables.</p>
+</section>
+<section id="octave" class="level4">
+<h4 class="anchored" data-anchor-id="octave">Octave</h4>
+<p>Go to Octave <a href="https://octave.org/download">download page</a> and identify the <code>.zip</code> package for <code>w64</code>. As the main use of Octave is through its user interface, you can extract the content directly to <code>bin/octave</code>.</p>
+</section>
+<section id="ruby" class="level4">
+<h4 class="anchored" data-anchor-id="ruby">Ruby</h4>
+<p>Go to Ruby <a href="https://rubyinstaller.org/downloads/">download page</a> and identify the <code>Devkit</code> package for <code>x64</code>. During installation change the path to point to binaries and unselect the options to associate extensions and adding to the path.</p>
+</section>
+<section id="lisp" class="level4">
+<h4 class="anchored" data-anchor-id="lisp">LISP</h4>
+<p>LISP may be installed through <a href="https://portacle.github.io/">Portacle</a>. Instead of right-clicking and installing the executable, Shift-click and select to extract the contents; place the resulting <code>portacle</code> directory. You may choose not to add it to the path if using through its EMACs interface.</p>
+</section>
+<section id="latex-and-related" class="level4">
+<h4 class="anchored" data-anchor-id="latex-and-related">LaTeX and related</h4>
+<p>Although LaTeX is not mandatory, it is highly encouraged; otherwise, what is the point of doing any scientific computing and not publishing its results?</p>
+<ul>
+<li><p>Start by following the instructions provided <a href="https://miktex.org/howto/portable-edition">here</a> to install MikTeX. Point the installation to a directory <code>miktex-portable</code> under <code>apps</code> and select <em>on-the-fly</em> installation of new packages.</p></li>
+<li><p>Consider installing the following additional software:</p>
+<ul>
+<li><a href="https://www.fosshub.com/JabRef.html">JabRef</a></li>
+<li><a href="https://github.com/jgm/pandoc/releases">pandoc</a></li>
+<li><a href="https://inkscape.org/release/1.4/windows/64-bit/">inkscape</a></li>
+</ul></li>
+<li><p>Globally install <a href="https://pygments.org/"><code>pip install Pygments</code></a> for enabling syntax highlight in LaTeX using <code>minted</code>; that is the most flexible highlighting method for adding code snippets to your documents.</p></li>
+<li><p>Also consider installing extension <a href="https://marketplace.visualstudio.com/items?itemName=James-Yu.latex-workshop">LaTeX Workshop</a> for automatic compilation in editor with built-in PDF visualization.</p></li>
+</ul>
+<p>To append to <code>TEXMF</code> variable one can use the MiKTeX Console graphical interface and under <code>Settings &gt; Directories</code> navigate and select the local path.</p>
+<!-- Alternativelly on can add to the `[Paths]` section of  `bin/apps/miktex-portable/texmfs/install/miktex/config/miktexstartup.ini` a line as `CommonRoots=C:/Path/To/Kompanion/bin/data/texmf` pointing to a directory implementing the project [TeX Directory Structure](https://miktex.org/kb/tds). You might need to add the section to the file, as `[Paths]` is not present in the as-installed condition. -->
+<p>If you prefer a dedicated LaTeX editor, you may wish to install <a href="https://www.texstudio.org/#download">texstudio</a>; some configuration of paths with the application may be required as it is not directly integrated to this environment.</p>
+<p><strong>Warning:</strong> for now having both Rust and Octave fully operational in command-line is not working. This should not be a problem as Octave can be launched with its user-interface and that remain the most popular/recommended way of using it.</p>
+<p><strong>Warning:</strong> For a fully operational <em>Jupyter notebook</em> environment, other the LaTeX support discussed in its dedicatet section, you also need both <code>pandoc</code> and <code>inkscape</code>.</p>
+<p><strong>Important:</strong> It is strongly recommended to install <a href="https://quarto.org/docs/download/">Quarto</a> as a supporting tool for publishing reports from Julia and Python.</p>
+</section>
+</section>
+<section id="msys2" class="level3">
+<h3 class="anchored" data-anchor-id="msys2">MSYS2</h3>
+<p>MSYS2 environment is useful for developing native Windows applications and programming in languages as C, C++, Fortran, and Rust. Kompanion VS Code configuration will automatically include this environment to its available terminal lists, what might fail if you do not install it. To get it working do the following:</p>
+<ul>
+<li><p>Go to MSYS2 <a href="https://www.msys2.org/">page</a> and save the installer to <code>downloads</code>.</p></li>
+<li><p>Run the installer and change installation path to point to a local <code>msys64</code> directory instead of the default <code>C:/msys64</code> (requiring admin rights).</p></li>
+<li><p>Once finished, launch an <a href="https://www.msys2.org/docs/environments/">UCRT64</a> environment as proposed in the installation guide. Install at least the following:</p></li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pacman</span> <span class="at">-S</span> <span class="dt">\</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    mingw-w64-ucrt-x86_64-toolchain <span class="dt">\</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    mingw-w64-ucrt-x86_64-binutils <span class="dt">\</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    mingw-w64-ucrt-x86_64-gcc <span class="dt">\</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    mingw-w64-ucrt-x86_64-gcc-fortran</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Full package list is provided <a href="https://packages.msys2.org/queue">here</a>.</li>
+</ul>
+</section>
+</section>
+<section id="creating-a-portable-launcher" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-portable-launcher">Creating a portable launcher</h2>
+<p>A simple way to create a portable launcher requiring to source extra variables is by writing a simple batch script exporting or calling another script with the definitions:</p>
+<pre class="batch"><code>@echo off
+
+@REM Add variables to be sourced here such as
+@REM set PATH="/path/to/some/dir";%PATH%
+@REM ... or call another shared script doing so.
+@REM call %~dp0\env
+
+MyCode.exe</code></pre>
+<p>Because a batch script will keep a console window open, create a VB file with the following</p>
+<pre class="visual-basic"><code>Set oShell = CreateObject ("Wscript.Shell")
+Dim strArgs
+strArgs = "cmd /c MyCode.bat"
+oShell.Run strArgs, 0, false</code></pre>
+<p>In the example we assume the program is called <code>MyCode.exe</code> and the batch script has been named in an analogous way <code>MyCode.bat</code>.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
