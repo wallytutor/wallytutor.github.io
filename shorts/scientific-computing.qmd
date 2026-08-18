@@ -85,11 +85,44 @@ Julia also supports [Unicode input](https://docs.julialang.org/en/v1/manual/unic
 
 ## Python workflows
 
-*Upcoming*
+The evolution of Python package management has progressed from the foundational [pip](https://pip.pypa.io/en/stable/), through the era of [Conda](https://docs.conda.io/projects/conda/en/latest/index.html), to the modern dominance of [uv](https://docs.astral.sh/uv/). While `pip` remains the official tool for interacting with the [Python Package Index (PyPI)](https://pypi.org/), its dependency resolution speed often poses limitations in complex projects. Conda gained significant popularity when Python expanded beyond POSIX-compliant environments to multi-platform systems, offering robust capabilities for environment isolation and package management, though its strong association with the [Anaconda](https://anaconda.org/) ecosystem eventually reduced its appeal. The landscape has been revolutionized by `uv`, a tool written in [Rust](https://rust-lang.org/) that provides unparalleled speed in dependency resolution, environment creation, and environment recycling. Beyond pure package management, `uv` supports the creation of standard `pyproject.toml` configurations for non-package executable projects and integrates natively with [PyO3](https://pyo3.rs/) to compile high-performance Rust extensions, establishing itself as the *de facto* standard for modern Python workflows as of 2026.
+
+The scientific Python ecosystem relies on highly mature, core libraries that function as indispensable extensions of the language itself, most notably the **SciPy stack**, which encompasses **NumPy, Pandas, Matplotlib, SymPy**, and **SciPy**. For machine learning, workflows branch into classical approaches and deep learning. Classical machine learning and data preparation are dominated by **Scikit-learn**, which provides an extensive suite of standard algorithms, and **Scikit-image**, frequently employed for image analysis and dataset generation. When projects scale to require massive computational resources and neural networks, deep learning frameworks such as **PyTorch, TensorFlow**, and **JAX** are utilized. These tools are designed to maximize performance and provide seamless scalability directly within GPU memory.
+
+Specialized scientific domains further rely on high-quality, academic-backed niche packages that serve as essential building blocks within the broader ecosystem. For instance, [CasADi](https://web.casadi.org/) is heavily utilized in control, automation, and ordinary differential equations, enabling rapid prototyping of algorithmically differentiable systems and offering robust solvers for stiff equations. Similarly, [Cantera](https://cantera.org/) serves as the foundational package for thermophysics, traditionally focused on gases but increasingly applied to other domains such as electrolytic cells and batteries. Because these niche tools are developed and maintained by dedicated academic research groups, they assure the long-term viability and continuous operation of these packages, allowing them to constitute critical building blocks of the basic Python ecosystem.
 
 ## Producing reports
 
 *Upcoming*
+
+<!--
+Notes are built using [Quarto](https://quarto.org/), and you can find the source code in this repository. To build the notes, you need to have that tool, Python and Rust enabled in Kompanion. Then you can follow these steps to create a virtual environment, install the required packages and build the notes:
+
+``` bash
+# Create a virtual environment
+python -m venv .venv
+
+# On Windows, use
+.venv\Scripts\Activate.ps1
+
+# Update pip
+python -m pip install --upgrade pip
+
+# Install the required packages
+python -m pip install -r requirements.txt
+
+# Use this to generate all formats
+quarto render
+
+# Or use these to generate specific formats
+quarto render --to html
+quarto render --to pdf
+
+# Finally, to publish the notes on GitHub Pages, use
+# (you need to be an allowed project collaborator to do this)
+quarto publish gh-pages --no-prompt --no-browser
+```
+-->
 
 ## Operating systems
 

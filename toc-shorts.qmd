@@ -15,6 +15,7 @@ format:
 ## General
 
 - [What about Scientific Computing?](shorts/scientific-computing.html)
+- [Kompanion Environment](shorts/kompanion-environment.html)
 
 ## Transport and Kinetics
 

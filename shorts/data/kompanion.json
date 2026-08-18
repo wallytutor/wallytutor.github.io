@@ -1,0 +1,45 @@
+{
+    "base": {
+        "lessmsi":     false,
+        "tabby":       false,
+        "nvim":        false,
+        "drawio":      false,
+        "ffmpeg":      false,
+        "imagemagick": false,
+        "inkscape":    false,
+        "jabref":      false,
+        "miktex":      false,
+        "pandoc":      false,
+        "poppler":     false,
+        "logseq":      false,
+        "zettlr":      false
+    },
+    "lang": {
+        "coq":         false,
+        "elm":         false,
+        "erlang":      false,
+        "haskell":     false,
+        "julia":       false,
+        "octave":      false,
+        "perl":        false,
+        "rlang":       false,
+        "racket":      false
+    },
+    "simu": {
+        "blender":     false,
+        "dwsim":       false,
+        "elmer":       false,
+        "freecad":     false,
+        "freefem":     false,
+        "gmsh":        false,
+        "gnuplot":     false,
+        "meshlab":     false,
+        "ollama":      false,
+        "opencascade": false,
+        "paraview":    false,
+        "prepomax":    false,
+        "radcal":      false,
+        "su2":         false,
+        "tesseract":   false
+    }
+}
