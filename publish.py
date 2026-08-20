@@ -159,6 +159,11 @@ def render_site() -> None:
         relative_dir = qmd_path.parent.relative_to(SCRIPT_DIR)
         target_dir = site_dir / relative_dir
 
+        # Ignore new articles coming from drafts:
+        if relative_dir.stem == "entering":
+            print(f"Skipping {qmd_path.name} (draft)")
+            continue
+
         expected_outputs = get_expected_outputs(qmd_path)
         should_render = False
 
