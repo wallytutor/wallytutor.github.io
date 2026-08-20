@@ -1,10 +1,43 @@
-# Counter-current PFR
+---
+title: Counter-current PFR
+author: Walter Dal'Maz Silva
+date: today
+toc: true
+toc-depth: 2
+bibliography: _assets/references.bib
+execute:
+  cache: true
+  echo: false
+format:
+  html:
+    theme: default
+  typst:
+    margin: {x: 2.5cm, top: 3.0cm, bottom: 2.0cm}
+    logo:
+      path: _assets/logo.svg
+      width: 5cm
+      location: right top
+      padding: 10mm
+    fontsize: 12pt
+    linestretch: 1.25
+    fig-format: png
+    fig-dpi: 300
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.19.4
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
 
-::: {.callout-warning}
-
-Work in progress!
-
-:::
+```{=typst}
+#show table: align.with(center)
+```
 
 ## Introduction
 
@@ -23,12 +56,16 @@ Because writting long classes is not didatic for the purposes of a tutorial, we 
 Below we start by importing all required tools at once:
 
 ```{python}
+#| echo: true
 %load_ext majordome.magic
-```
 
-```{python}
-from majordome.utilities import MajordomePlot
-from majordome.engineering import (
+import os
+import logging
+import cantera as ct
+import numpy as np
+
+from majordome import (
+    MajordomePlot,
     PlugFlowChainCantera,
     RelaxUpdate,
     StabilizeNvarsConvergenceCheck,
@@ -36,19 +73,14 @@ from majordome.engineering import (
 )
 from numpy.typing import NDArray
 from tabulate import tabulate
-import os
-import logging
-import cantera as ct
-import numpy as np
-```
 
-```{python}
 logging.basicConfig(level=logging.INFO, force=True)
 ```
 
 Because some cells take some time to execute, during development you can set this to `"true"` so that they are not run. You can recognize these cells by the presence of magic `%%skipper`. Setting this to `"false"` will not skip the cells (this is the logic of the booleans here, we are saying true to skip, not true to execute!).
 
 ```{python}
+#| echo: true
 os.environ["MJ_SOLVE_FINEST"] = "true"
 ```
 
@@ -57,10 +89,12 @@ os.environ["MJ_SOLVE_FINEST"] = "true"
 This section is not commented, variables and functions should speak by themselves.
 
 ```{python}
+#| echo: true
 X_AIR = "N2: 0.79, O2: 0.21"
 ```
 
 ```{python}
+#| echo: true
 def dicretize_length(L, dL):
     """ Discretize length L in cells of length `dL`. """
     return np.arange(dL/2, L-dL/2+0.1*dL, dL)
@@ -71,6 +105,7 @@ def dicretize_length(L, dL):
 For the single reactor `ReactorModel` we write a simple wrapper around `PlugFlowChainCantera`; this model holds an instance of a `solution` object conceived with the same mechanism as provided to the PFR, and a simple `source` structure for the distributed source terms.
 
 ```{python}
+#| echo: true
 class ReactorModel:
     """ Wrapper model for creation of a plug flow reactor. """
     def __init__(self, z, V, mech="airish.yaml"):
@@ -82,6 +117,7 @@ class ReactorModel:
 Both the `solution` and `source` are used in `add_source` to inject a mass flow rate `mdot` at temperature `T`, and composition `X` (given in mole fractions) at a set of cell indices `where` along the reactor. We will see later how discretization is performed and thus how to link `where` to an actual axial coordinate along the reactor.
 
 ```{python}
+#| echo: true
 def add_source(model, *, where, mdot, T, X):
     """ Set axial source terms along reactor. """
     model.solution.TPX = T, None, X
@@ -93,6 +129,7 @@ def add_source(model, *, where, mdot, T, X):
 The underlining PFR model has already its own solution method (which is actually called `update`) that *seeks* a steady state for the reactor given a certaing `source`; sometimes it fail to converge and multiple calls may be required to find the steady state of a reactor. In `solve_reactor` below we wrap the aforementioned method and add some reporting.
 
 ```{python}
+#| echo: true
 def solve_reactor(model, report=True):
     """ Solve reactor model with provided source terms. """
     model.reactor.update(model.source)
@@ -120,6 +157,7 @@ $$
 This is arbitrarily parametrized and is intended just to show that accessing `model.source.Q` allows to provide any heat source function to a reactor.
 
 ```{python}
+#| echo: true
 def sample_single(l=0.001, report_first=False):
     """ Single reactor model sample. """
     D = 0.10   # Reactor diameter [m]
@@ -160,14 +198,17 @@ def sample_single(l=0.001, report_first=False):
 We said no convergence study was going to be performed; that was a lie. Below we inspect the evolution of final temperature in terms of reactor cell length in range $l\in[0.001;0.1]$ m. Solution quickly approaches 340.6 K, and for practical purposes a discretization of 1 cm seems a good compromise between execution time and accuracy. Also notice that total supplied power may depend on discretization because of how it is provided.
 
 ```{python}
+#| echo: true
 model = sample_single(l=0.1)
 ```
 
 ```{python}
+#| echo: true
 model = sample_single(l=0.01)
 ```
 
 ```{python}
+#| echo: true
 %%skipper MJ_SOLVE_FINEST
 model = sample_single(l=0.001)
 ```
@@ -175,12 +216,14 @@ model = sample_single(l=0.001)
 Below we show the report of first solution, which here is no better than an initial guess; sequential solution of reactor towards steady state is recommended in practice.
 
 ```{python}
+#| echo: true
 model = sample_single(l=0.005, report_first=True)
 ```
 
 Finally we illustate the composition and temperature profiles induced by the simultaneous mass and heat transfer:
 
 ```{python}
+#| echo: true
 plot = model.reactor.quick_plot()
 plot.axes[0].set_ylim(0, 1)
 plot.resize(8, 6)
@@ -189,6 +232,7 @@ plot.resize(8, 6)
 You can also access the data in base reactor for post-processing as desired:
 
 ```{python}
+#| echo: true
 model.reactor.states.to_pandas().head().T
 ```
 
@@ -197,6 +241,7 @@ model.reactor.states.to_pandas().head().T
 The tooling required to compute a pair of reactors is already provided by `ReactorModel`; all we have to do is wrap a pair of reactors in `CounterCurrentReactors`. For convenience we store a copy of the axial coordinate (which is the same for both reactors). Notice here the introduction of `U`, a global heat transfer coefficient between phases, `Q`, the associated heat flux, and a relaxation manager.
 
 ```{python}
+#| echo: true
 class CounterCurrentReactors:
     """ Wrap a pair of reactors and exchange heat between them. """
     def __init__(self, z, V1, V2, U, alpha=0.8):
@@ -213,6 +258,7 @@ class CounterCurrentReactors:
 One cannot compute heat fluxes between reactors before having an initial temperature profile established (see it as an initial guess). Function `initialize` is provided for that end and must be called after mass flows have been setup.
 
 ```{python}
+#| echo: true
 def initialize(model):
     """ First solution for *initial guess*. """
     solve_reactor(model.r1, report=False)
@@ -224,6 +270,7 @@ There are two ways one can solve the relaxation problem here, each with its stre
 **IMPORTANT:** notice here that we get the reverse of `T2` to compute flux (as the reactors are in counter-current) and then `model.Q` is reversed againt to set heat flux to reactor 2. This class could easily be generalized by adding a flag on whether temperature and flux should be treated as is (co-current) or reversed.
 
 ```{python}
+#| echo: true
 def iter_direct(model, T1, T2):
     """ Strategy 1: compute flux, update both reactors. """
     model.Q[:] = model.relax(model.U * (T1 - T2[::-1]))
@@ -236,6 +283,7 @@ def iter_direct(model, T1, T2):
 ```
 
 ```{python}
+#| echo: true
 def iter_alternate(model, T1, T2):
     """ Strategy 2: sequentally compute flux and update a reactor. """
     # Step 1:
@@ -253,6 +301,7 @@ def iter_alternate(model, T1, T2):
 Based on the previous discussion, a mixed approach can be proposed: relax the problem with the alternating solution and move to direct one after a certain criteria or maximum number of iterations has been achieved. This is emulated in `solve_pair` provided below.
 
 ```{python}
+#| echo: true
 def solve_pair(model, method="alternate", *, max_alternate=np.inf,
                max_iter=50, patience=3):
     """ Iterativelly solve pair of reactors with method. """
@@ -284,6 +333,7 @@ def solve_pair(model, method="alternate", *, max_alternate=np.inf,
 A simple standard ploting function is provided for the counter-current reactor pair:
 
 ```{python}
+#| echo: true
 @MajordomePlot.new(shape=(3, 1), size=(10, 8))
 def plot_pair(pair, plot=None):
     """ Plot pair of reactors in counter-current. """
@@ -322,6 +372,7 @@ This second example replaces the user-defined heat flow function by a convective
 After building the reactor pair, inlet and distributed conditions and the reactors are initialized, *.i.e.* solved individually, before iterative solution is performed. The user may require a final solution step for printing reactor quantities in a table.
 
 ```{python}
+#| echo: true
 def solve_and_report(r1, r2):
     """ Solve both reactors with results reporting. """
     solve_reactor(r1, report=True) # O
@@ -329,6 +380,7 @@ def solve_and_report(r1, r2):
 ```
 
 ```{python}
+#| echo: true
 def sample_pair(l=0.02, alpha=0.75, method="alternate", final_solve=False, **kwargs):
     """ Pair of reactors model sample. """
     # - PARAMETERS
@@ -376,10 +428,12 @@ def sample_pair(l=0.02, alpha=0.75, method="alternate", final_solve=False, **kwa
 For low relaxation values ($\alpha<0.5$), both methods may eventually converge under the same number of iterations.
 
 ```{python}
+#| echo: true
 pair = sample_pair(l=0.010, alpha=0.3, method="alternate", final_solve=True)
 ```
 
 ```{python}
+#| echo: true
 %%skipper MJ_SOLVE_FINEST
 pair = sample_pair(l=0.010, alpha=0.3, method="not_alternate", final_solve=True)
 ```
@@ -387,11 +441,13 @@ pair = sample_pair(l=0.010, alpha=0.3, method="not_alternate", final_solve=True)
 Refining the grid for the present case has an impact of a few degrees over final solution (but takes much longer to solve), as illustrated below. Below 2 mm there is little change in the final solution and this value is a practical limit for grid refinement here.
 
 ```{python}
+#| echo: true
 %%skipper MJ_SOLVE_FINEST
 pair = sample_pair(l=0.002, alpha=0.3, method="alternate", final_solve=True)
 ```
 
 ```{python}
+#| echo: true
 %%skipper MJ_SOLVE_FINEST
 pair = sample_pair(l=0.001, alpha=0.1, method="alternate", final_solve=True, max_alternate=5)
 ```
@@ -399,6 +455,7 @@ pair = sample_pair(l=0.001, alpha=0.1, method="alternate", final_solve=True, max
 Finally we display the results; for the hot stream we observe a sharp decrease in temperature (and associated specific heat capacity) due to argon dilution. Cold stream progressivelly heats up along the channel length as expected.
 
 ```{python}
+#| echo: true
 plot = plot_pair(pair)
 ```
 
@@ -417,6 +474,7 @@ $$
 We make use of the main takes of the previous sections, which have shown that alternating reactor solution order is not always an advantage; here the problem has been programmed to use direct solution. Relaxation is applied to reactor fluxes, but not to wall flux, which is computed from a balance of the relaxed quantities for the sake of energy conservation.
 
 ```{python}
+#| echo: true
 class FullCounterCurrentReactors:
     """ Add external losses to a pair of coupled reactors.
 
@@ -565,6 +623,7 @@ class FullCounterCurrentReactors:
 ### Example - environment coupling
 
 ```{python}
+#| echo: true
 def sample_full(l=0.02, alpha=0.3, method="direct"):
     """ Sample case with a pair of coupled reactor and wall losses. """
     # - PARAMETERS
@@ -626,24 +685,29 @@ def sample_full(l=0.02, alpha=0.3, method="direct"):
 ```
 
 ```{python}
+#| echo: true
 reactor = sample_full(l=0.100, alpha=0.3)
 ```
 
 ```{python}
+#| echo: true
 reactor = sample_full(l=0.010, alpha=0.3, method="direct")
 ```
 
 ```{python}
+#| echo: true
 %%skipper MJ_SOLVE_FINEST
 reactor = sample_full(l=0.010, alpha=0.3, method="alternate")
 ```
 
 ```{python}
+#| echo: true
 %%skipper MJ_SOLVE_FINEST
 reactor = sample_full(l=0.001, alpha=0.3)
 ```
 
 ```{python}
+#| echo: true
 plot = reactor.plot()
 ```
 
@@ -652,6 +716,7 @@ plot = reactor.plot()
 Below we develop further the idea into registering heat flows as an alternative to relaxation. The method may prove useful because heat flows are computed from current state of the reactors instead of an external guess.
 
 ```{python}
+#| echo: true
 def sample_register_single(l=0.001, report_first=False):
     """ Single reactor model sample. """
     # - PARAMETERS ----------------------------------------------------
@@ -706,10 +771,12 @@ def sample_register_single(l=0.001, report_first=False):
 ### Example - prototype with a single reactor
 
 ```{python}
+#| echo: true
 model = sample_register_single(l=0.001)
 ```
 
 ```{python}
+#| echo: true
 plot = model.reactor.quick_plot()
 plot.axes[0].set_ylim(0, 1)
 plot.resize(8, 6)
@@ -720,6 +787,7 @@ plot.resize(8, 6)
 As a last level of improvement, we generalize the approach for a pair of reactors. After some experimentation it was concluded that falling back to the alternating approach with intermediate wall solution lead to the best performance, probably because of decreased system stifness. Relaxing the wall heat flow allows for faster convergence.
 
 ```{python}
+#| echo: true
 class FullCounterCurrentReactorsWithRegister:
     """ Add external losses to a pair of coupled reactors.
 
@@ -949,6 +1017,7 @@ class FullCounterCurrentReactorsWithRegister:
 ### Example - extension to coupled system
 
 ```{python}
+#| echo: true
 def sample_register_full(l=0.02, method="method-2"):
     """ Sample case with a pair of coupled reactor and wall losses. """
     # - PARAMETERS
@@ -1012,38 +1081,46 @@ def sample_register_full(l=0.02, method="method-2"):
 ```
 
 ```{python}
+#| echo: true
 %%time
 reactor = sample_register_full(l=0.010, method="weak_alt")
 ```
 
 ```{python}
+#| echo: true
 %%time
 reactor = sample_register_full(l=0.010, method="weak_seq")
 ```
 
 ```{python}
+#| echo: true
 plot = reactor.plot()
 ```
 
 ```{python}
+#| echo: true
 %%time
 reactor = sample_register_full(l=0.010, method="step_alt")
 ```
 
 ```{python}
+#| echo: true
 %%time
 reactor = sample_register_full(l=0.010, method="step_seq")
 ```
 
 ```{python}
+#| echo: true
 plot = reactor.plot()
 ```
 
 ```{python}
+#| echo: true
 %%time
 reactor = sample_full(l=0.010, alpha=0.35, method="direct")
 ```
 
 ```{python}
+#| echo: true
 plot = reactor.plot()
 ```

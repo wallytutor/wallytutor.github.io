@@ -25,6 +25,7 @@ format:
 - [Transient heat transfer](shorts/julia-transient-heat-transfer.html)
 - [Thermal analysis simulation](shorts/julia-materials-kinetics.html)
 - [Acetylene pyrolysis](shorts/acetylene-pyrolysis-reactor.html)
+- [Counter-current PFR](shorts/counter-current-pfr.html)
 
 ## Data Science and Machine Learning
 
