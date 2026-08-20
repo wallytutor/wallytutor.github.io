@@ -307,8 +307,8 @@ def tabulate_with_mechanism(mech, df=None):
             "P": row["P"],
             "T_wall": CubicSpline(PROFILES["z"], PROFILES[T_name])
         }
-        _, df = solve(mech, **conf)
-        table[k]["X_calc"] = float(df["X_C2H2"].iloc[-1])
+        _, tmp = solve(mech, **conf)
+        table[k]["X_calc"] = float(tmp["X_C2H2"].iloc[-1])
 
     scan = pd.DataFrame(table)
     scan = scan.rename(columns={"X_calc": x_name})
