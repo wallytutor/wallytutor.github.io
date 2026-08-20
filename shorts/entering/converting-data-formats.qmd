@@ -1,0 +1,84 @@
+# Converting thermodynamics data formats
+
+```{python}
+import numpy as np
+from majordome.utilities import plot_xy
+from scipy.optimize import curve_fit
+```
+
+```{python}
+class Parameterizations:
+    @staticmethod
+    def specific_heat_haas1981(T, a):
+        return a[0] / T**2 + a[2] / T**0.5 + a[4] + 2 * a[5] * T + a[6] * T**2
+
+    @staticmethod
+    def specific_heat_maier_kelley(T, *a):
+        return a[0] + a[1] * T + a[2] / T**2
+```
+
+## Diaspore $AlO(OH)$
+
+```{python}
+a = [
+    +2.430690e05,  # a1
+    +1.047190e05,  # a2
+    -1.730020e03,  # a3
+    -1.021486e03,  # a4
+    +1.505560e02,  # a5
+    +0.000000e00,  # a6
+    +0.000000e00,  # a7
+]
+
+T = np.linspace(250, 550, 100)
+c_ref = Parameterizations.specific_heat_haas1981(T, a)
+
+popt, _ = curve_fit(
+    Parameterizations.specific_heat_maier_kelley, xdata=T, ydata=c_ref, p0=[1, 1, 1]
+)
+
+print(f"Coefficients: {', '.join(map(str, popt))}")
+
+c_fit = Parameterizations.specific_heat_maier_kelley(T, *popt)
+
+p = plot_xy()
+p.axes[0].plot(T, c_ref)
+p.axes[0].plot(T, c_fit, "r")
+p.axes[0].set_xlabel("Temperature [K]")
+p.axes[0].set_ylabel("Specific heat [J/mol/K]")
+pass
+```
+
+## Corundum $Al_2O_3$
+
+```{python}
+a = [
+    +0.000000e00,  # a1
+    +1.732100e04,  # a2
+    -2.465180e03,  # a3
+    -1.550920e03,  # a4
+    +2.330040e02,  # a5
+    -1.959130e-02,  # a6
+    +9.444100e-06,  # a7
+]
+
+T = np.linspace(300, 1000, 100)
+c_ref = Parameterizations.specific_heat_haas1981(T, a)
+
+popt, _ = curve_fit(
+    Parameterizations.specific_heat_maier_kelley, xdata=T, ydata=c_ref, p0=[1, 1, 1]
+)
+
+print(f"Coefficients: {', '.join(map(str, popt))}")
+
+c_fit = Parameterizations.specific_heat_maier_kelley(T, *popt)
+
+p = plot_xy()
+p.axes[0].plot(T, c_ref)
+p.axes[0].plot(T, c_fit, "r")
+p.axes[0].set_xlabel("Temperature [K]")
+p.axes[0].set_ylabel("Specific heat [J/mol/K]")
+pass
+```
+
+
