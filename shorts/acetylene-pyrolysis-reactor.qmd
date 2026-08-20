@@ -39,7 +39,7 @@ jupyter:
 #show table: align.with(center)
 ```
 
-In this notebook we present a comparitive study of three different mechanisms for the pyrolysis of acetylene (listed in `MECHS`). Simulations are carried out with the models provided by Majordome, here the *chain of PSR* reactor model used to represent a PFR. Below we start by importing the required tools and configuring the environment.
+In this notebook, we present a comparative study of three different mechanisms for the pyrolysis of acetylene (listed in `MECHS`). Simulations are carried out with the models provided by Majordome, here the *chain of PSR* reactor model used to represent a PFR. Below, we start by importing the required tools and configuring the environment.
 
 ```{python}
 #| echo: true
@@ -87,12 +87,12 @@ z = np.arange(d/2, L-d/2+0.1*d, d)
 V = np.full_like(z, V_cell)
 ```
 
-Acetylene is not stored pure, but always contains some acetone in it. Depending on the mechanism we use (whether or not it includes acetone) we need to account for it in a particular way. Below is the code that evaluates the *bottle* mixture composition for a given fraction of acetylene in the process mixture. The recommended default composition comes from @Norinaga2009.
+Acetylene is not stored pure, but always contains some acetone. Depending on the mechanism we use (whether or not it includes acetone), we need to account for it in a particular way. Below is the code that evaluates the *bottle* mixture composition for a given fraction of acetylene in the process mixture. The recommended default composition comes from @Norinaga2009.
 
 ```{python}
 #| echo: true
 def initial_mixture(sol, fraction):
-    """ Compute mixture accounting for imputiries. """
+    """ Compute mixture accounting for impurities. """
     if "CH3COCH3" in sol.species_names:
         X = {"C2H2"     : 0.980 * fraction,
              "CH4"      : 0.002 * fraction,
@@ -133,12 +133,12 @@ PROFILES = pd.DataFrame({
 })
 ```
 
-To be able to apply this profile, we need to implement a function evaluating the heat flow in each cell along the domain. Since we are dealing with low pressure-low speed flows, Nusselt number for laminar flow in a tube is taken for granted. The following function wraps the creation of the required function. Please, notice that as the mechanism by @Norinaga2009 does not include transport properties, we use a fallback value for the thermal conductivity.
+To apply this profile, we need to implement a function evaluating the heat flow in each cell along the domain. Since we are dealing with low-pressure, low-speed flows, the Nusselt number for laminar flow in a tube is assumed. The following function wraps the creation of the required function. Note that since the mechanism by @Norinaga2009 does not include transport properties, we use a fallback value for the thermal conductivity.
 
 ```{python}
 #| echo: true
 def make_heat_flow_condition(sol, T_wall, Nu=3.66):
-    """ Create heat transfer function for each cell in the syste,. """
+    """ Create heat transfer function for each cell in the system. """
     def heat_flow(i, T):
         try:
             k = sol.thermal_conductivity
@@ -153,7 +153,7 @@ def make_heat_flow_condition(sol, T_wall, Nu=3.66):
     return heat_flow
 ```
 
-Function `solve` puts together the whole workflow for simulating the system. It creates a solution for reactor initialization, handle customary to SI unit conversion, provides the coupling with the environment, solves the system, and retrieves results.
+Function `solve` puts together the whole workflow for simulating the system. It creates a solution for reactor initialization, handles standard unit conversions to SI, provides the coupling with the environment, solves the system, and retrieves results.
 
 ```{python}
 #| echo: true
@@ -222,7 +222,7 @@ def plot(df, *, plot):
 
 ## Reference case
 
-The main case studied in @DalMazSilva2017PhD concerns the decomposition of 36% mol/mol of acetylene in the presence of nitrogen at 50 hPa and 222 SCCM of flow rate, with maximum reactor temperature set to 1173.15 K. These conditions are used below to interpolate wall profile and then used in what follows.
+The main case studied in @DalMazSilva2017PhD concerns the decomposition of 36% mol/mol of acetylene in the presence of nitrogen at 50 hPa and 222 SCCM of flow rate, with the maximum reactor temperature set to 1173.15 K. These conditions are used below to interpolate the wall temperature profile for our simulation.
 
 ```{python}
 #| echo: true
@@ -344,7 +344,7 @@ df = tabulate_with_mechanism(MECHS[1], df=df)
 
 :::
 
-Finally, we summarize all results of acetylene conversion in a single table. Please notice that validation was done only against the main species due to experimental limitations, and minor species are certainly predicted to a lesser degree of accuracy. The skeletal mechanism provided by @DalMazSilva2017PhD provides a better predictive performace compared to the global one from @Graf2007. Nevertheless, this comes with a greater computational cost, but still small compared to the needs to simulate the mechanism by @Norinaga2009.
+Finally, we summarize all results of acetylene conversion in a single table. Note that validation was done only against the main species due to experimental limitations, and minor species are predicted with a lesser degree of accuracy. The skeletal mechanism provided by @DalMazSilva2017PhD provides a better predictive performance compared to the global one from @Graf2007. Nevertheless, this comes with a greater computational cost, though still small compared to the requirements to simulate the mechanism by @Norinaga2009.
 
 ```{python}
 #| echo: true

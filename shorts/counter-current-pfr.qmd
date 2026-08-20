@@ -41,17 +41,17 @@ jupyter:
 
 ## Introduction
 
-The goal of this tutorial is to discuss a sequence of increasingly complex plug-flow reactor (PFR) models. These are all built upon `PlugFlowChainCantera` which approximates a PFR as a cascade of perfect-stirred reactors (PSR), as illustrated [here](https://cantera.org/stable/examples/python/reactors/pfr.html#sphx-glr-examples-python-reactors-pfr-py). Care must be taken when using such an approach because this zero-dimensional modeling does not formally represent a PFR, but approaches one - so grid convergence studies might be required to validate a model, what is beyond our scope here (and has been done during the conception of this report), which limits itself to studying the coupling of reactors. Nonetheless, this representation proves very interesting when assembling complex systems as it remains modular, allowing for extensibility of models.
+The goal of this tutorial is to discuss a sequence of increasingly complex plug-flow reactor (PFR) models. These are all built upon `PlugFlowChainCantera` which approximates a PFR as a cascade of perfect-stirred reactors (PSR), as illustrated [here](https://cantera.org/stable/examples/python/reactors/pfr.html#sphx-glr-examples-python-reactors-pfr-py). Care must be taken when using such an approach because this zero-dimensional modeling does not formally represent a PFR, but approaches one. Consequently, grid convergence studies might be required to validate a model, which is beyond our scope here (and has been done during the development of this report), which limits itself to studying the coupling of reactors. Nonetheless, this representation proves very interesting when assembling complex systems as it remains modular, allowing for extensibility of models.
 
 In what follows we will be guided through the following models:
 
-- A single PFR with possibility of distributed mass sources along its length; this case is often encountered in industry when modeling reactors coupled through a permeable membrane, or in a rotary kiln, where solids may eventually release gases, what is especially important in the field of biomatter gaseification.
+- A single PFR with the possibility of distributed mass sources along its length; this case is often encountered in industry when modeling reactors coupled through a permeable membrane, or in a rotary kiln, where solids may eventually release gases, which is especially important in the field of biomass gasification.
 
-- Next we will couple a pair of reactors as conceived in the first example, which will be allowed to exchange energy through a pseudo-convective model; there is no major difficulty at this point as the coupling can be stabilized through a relaxation routine. We investigate how the ordering of reactor solution affects convergence rate.
+- Next, we will couple a pair of reactors as conceived in the first example, which will exchange energy through a pseudo-convective model. There is no major difficulty at this point as the coupling can be stabilized through a relaxation routine. We will investigate how the ordering of the reactor solutions affects the convergence rate.
 
-- At the last level of complexity studied here, we add a shared common wall around the pair of reactors of the previous step; one might argue that such a system would require two *wall* temperatures to be described at steady state; here we will assume that this wall is *rotating* around the pair of reactors in such a way that it remains in contact with a reactor during part of a cycle, and a *statistically significant mean temperature* is solely used as a process measurable.
+- At the final level of complexity studied here, we add a shared common wall around the pair of reactors of the previous step. One might argue that such a system would require two *wall* temperatures to be described at steady state; here we will assume that this wall is *rotating* around the pair of reactors in such a way that it remains in contact with each reactor during part of a cycle, and a *statistically significant mean temperature* is solely used as a process measurable.
 
-Because writting long classes is not didatic for the purposes of a tutorial, we will use a *semi-object-oriented* programming approach here. That means, there will be minimal classes just holding the basic elements representing the state of a problem, and functions that resemble class methods (receiving the class instance as first argument) to perform the required operations.
+Because writing long classes is not didactic for the purposes of a tutorial, we will use a *semi-object-oriented* programming approach here. This means there will be minimal classes holding the basic elements representing the state of a problem, and functions that resemble class methods (receiving the class instance as the first argument) to perform the required operations.
 
 Below we start by importing all required tools at once:
 
@@ -95,14 +95,14 @@ X_AIR = "N2: 0.79, O2: 0.21"
 
 ```{python}
 #| echo: true
-def dicretize_length(L, dL):
+def discretize_length(L, dL):
     """ Discretize length L in cells of length `dL`. """
     return np.arange(dL/2, L-dL/2+0.1*dL, dL)
 ```
 
 ## Single plug-flow reactor
 
-For the single reactor `ReactorModel` we write a simple wrapper around `PlugFlowChainCantera`; this model holds an instance of a `solution` object conceived with the same mechanism as provided to the PFR, and a simple `source` structure for the distributed source terms.
+For the single reactor `ReactorModel`, we write a simple wrapper around `PlugFlowChainCantera`. This model holds an instance of a `solution` object conceived with the same mechanism as provided to the PFR, and a simple `source` structure for the distributed source terms.
 
 ```{python}
 #| echo: true
@@ -114,7 +114,7 @@ class ReactorModel:
         self.source   = self.reactor.get_reactor_data()
 ```
 
-Both the `solution` and `source` are used in `add_source` to inject a mass flow rate `mdot` at temperature `T`, and composition `X` (given in mole fractions) at a set of cell indices `where` along the reactor. We will see later how discretization is performed and thus how to link `where` to an actual axial coordinate along the reactor.
+Both the `solution` and `source` are used in `add_source` to inject a mass flow rate `mdot` at temperature `T` and composition `X` (given in mole fractions) at a set of cell indices `where` along the reactor. We will see later how discretization is performed and how to link `where` to an actual axial coordinate along the reactor.
 
 ```{python}
 #| echo: true
@@ -126,7 +126,7 @@ def add_source(model, *, where, mdot, T, X):
     model.source.Y[where, :] = model.solution.Y
 ```
 
-The underlining PFR model has already its own solution method (which is actually called `update`) that *seeks* a steady state for the reactor given a certaing `source`; sometimes it fail to converge and multiple calls may be required to find the steady state of a reactor. In `solve_reactor` below we wrap the aforementioned method and add some reporting.
+The underlying PFR model already has its own solution method (which is actually called `update`) that *seeks* a steady state for the reactor given a certain `source`. Sometimes it fails to converge and multiple calls may be required to find the steady state of a reactor. In `solve_reactor` below, we wrap this method and add some reporting.
 
 ```{python}
 #| echo: true
@@ -145,7 +145,7 @@ def solve_reactor(model, report=True):
 
 ### Example - single PFR simulation
 
-As this first case is already fully supported by the underlining library class, we are ready to solve a first example problem. Comments are provided in the function `sample_single` to guide you through the setup. A distributed power supply is added to the reactor as an analytical function as:
+As this first case is already fully supported by the underlying library class, we are ready to solve a first example problem. Comments are provided in the function `sample_single` to guide you through the setup. A distributed power supply is added to the reactor as an analytical function:
 
 $$
 Q(z) = \begin{cases}
@@ -167,7 +167,7 @@ def sample_single(l=0.001, report_first=False):
     V = np.pi * (D / 2)**2 * l
 
     # Discretize length in equal length cells [m].
-    z = dicretize_length(L, l)
+    z = discretize_length(L, l)
 
     # Find indexes where z>0.2 and z<=0.4 m to apply some
     # distributed gas injection (to test robustness of method).
@@ -195,7 +195,7 @@ def sample_single(l=0.001, report_first=False):
     return model
 ```
 
-We said no convergence study was going to be performed; that was a lie. Below we inspect the evolution of final temperature in terms of reactor cell length in range $l\in[0.001;0.1]$ m. Solution quickly approaches 340.6 K, and for practical purposes a discretization of 1 cm seems a good compromise between execution time and accuracy. Also notice that total supplied power may depend on discretization because of how it is provided.
+We said no convergence study was going to be performed; that was a lie. Below we inspect the evolution of the final temperature in terms of the reactor cell length in the range $l\in[0.001;0.1]$ m. The solution quickly approaches 340.6 K, and for practical purposes, a discretization of 1 cm seems a good compromise between execution time and accuracy. Also notice that the total supplied power may depend on the discretization because of how it is provided.
 
 ```{python}
 #| echo: true
@@ -213,14 +213,14 @@ model = sample_single(l=0.01)
 model = sample_single(l=0.001)
 ```
 
-Below we show the report of first solution, which here is no better than an initial guess; sequential solution of reactor towards steady state is recommended in practice.
+Below we show the report of the first solution, which here is no better than an initial guess. A sequential solution of the reactor towards the steady state is recommended in practice.
 
 ```{python}
 #| echo: true
 model = sample_single(l=0.005, report_first=True)
 ```
 
-Finally we illustate the composition and temperature profiles induced by the simultaneous mass and heat transfer:
+Finally, we illustrate the composition and temperature profiles induced by the simultaneous mass and heat transfer:
 
 ```{python}
 #| echo: true
@@ -229,7 +229,7 @@ plot.axes[0].set_ylim(0, 1)
 plot.resize(8, 6)
 ```
 
-You can also access the data in base reactor for post-processing as desired:
+You can also access the data in the base reactor for post-processing as desired:
 
 ```{python}
 #| echo: true
@@ -238,7 +238,7 @@ model.reactor.states.to_pandas().head().T
 
 ## Counter-current flow reactors
 
-The tooling required to compute a pair of reactors is already provided by `ReactorModel`; all we have to do is wrap a pair of reactors in `CounterCurrentReactors`. For convenience we store a copy of the axial coordinate (which is the same for both reactors). Notice here the introduction of `U`, a global heat transfer coefficient between phases, `Q`, the associated heat flux, and a relaxation manager.
+The tooling required to compute a pair of reactors is already provided by `ReactorModel`; we only need to wrap a pair of reactors in `CounterCurrentReactors`. For convenience, we store a copy of the axial coordinate (which is the same for both reactors). Notice here the introduction of `U`, a global heat transfer coefficient between phases, `Q`, the associated heat flux, and a relaxation manager.
 
 ```{python}
 #| echo: true
@@ -265,9 +265,9 @@ def initialize(model):
     solve_reactor(model.r2, report=False)
 ```
 
-There are two ways one can solve the relaxation problem here, each with its strengths and weaknesses; one could simply calculate calculate the flux, apply it to both reactors, and solve (`iter_direct`) or compose a series of flux and solution calculations (`iter_alternate`). When initial guess is not good enough, the alternating approach tends to deliver results in a more reliable fashion (because it is compatible with high relaxation factors), but it is slower. On the other hand, direct solution may converge faster as solution is already relaxed.
+There are two ways one can solve the relaxation problem here, each with its strengths and weaknesses: one could simply calculate the flux, apply it to both reactors, and solve (`iter_direct`), or compose a series of flux and solution calculations (`iter_alternate`). When the initial guess is not good enough, the alternating approach tends to deliver results in a more reliable fashion (because it is compatible with high relaxation factors), but it is slower. On the other hand, the direct solution may converge faster as the solution is already relaxed.
 
-**IMPORTANT:** notice here that we get the reverse of `T2` to compute flux (as the reactors are in counter-current) and then `model.Q` is reversed againt to set heat flux to reactor 2. This class could easily be generalized by adding a flag on whether temperature and flux should be treated as is (co-current) or reversed.
+Notice here that we get the reverse of `T2` to compute the flux (as the reactors are in counter-current) and then `model.Q` is reversed again to set the heat flux to reactor 2. This class could easily be generalized by adding a flag on whether temperature and flux should be treated as is (co-current) or reversed.
 
 ```{python}
 #| echo: true
@@ -298,7 +298,7 @@ def iter_alternate(model, T1, T2):
     solve_reactor(model.r2, report=False)
 ```
 
-Based on the previous discussion, a mixed approach can be proposed: relax the problem with the alternating solution and move to direct one after a certain criteria or maximum number of iterations has been achieved. This is emulated in `solve_pair` provided below.
+Based on the previous discussion, a mixed approach can be proposed: relax the problem with the alternating solution and move to the direct one after certain criteria or a maximum number of iterations has been achieved. This is emulated in `solve_pair` provided below.
 
 ```{python}
 #| echo: true
@@ -367,9 +367,9 @@ def plot_pair(pair, plot=None):
 
 ### Example - pair of coupled PFR
 
-This second example replaces the user-defined heat flow function by a convective heat exchange through a fin separating the reactions; this is modeled through a heat transfer coefficient `h` which is made constant here for illustration purposes only. To test the robustness of the approach, a relativelly high dilution flow is applied to a concentrated region in reactor 2 (hot stream).
+This second example replaces the user-defined heat flow function with a convective heat exchange through a fin separating the reactions; this is modeled through a heat transfer coefficient `h` which is made constant here for illustration purposes only. To test the robustness of the approach, a relatively high dilution flow is applied to a concentrated region in reactor 2 (hot stream).
 
-After building the reactor pair, inlet and distributed conditions and the reactors are initialized, *.i.e.* solved individually, before iterative solution is performed. The user may require a final solution step for printing reactor quantities in a table.
+After building the reactor pair, the inlet and distributed conditions and the reactors are initialized, *i.e.*, solved individually, before the iterative solution is performed. The user may require a final solution step for printing reactor quantities in a table.
 
 ```{python}
 #| echo: true
@@ -404,7 +404,7 @@ def sample_pair(l=0.02, alpha=0.75, method="alternate", final_solve=False, **kwa
     A = D * l
 
     # Discretize space and prepare inputs:
-    z = dicretize_length(L, l)
+    z = discretize_length(L, l)
     V1 = V2 = np.full_like(z, V)
     U = np.full_like(z, h * A)
 
@@ -438,7 +438,7 @@ pair = sample_pair(l=0.010, alpha=0.3, method="alternate", final_solve=True)
 pair = sample_pair(l=0.010, alpha=0.3, method="not_alternate", final_solve=True)
 ```
 
-Refining the grid for the present case has an impact of a few degrees over final solution (but takes much longer to solve), as illustrated below. Below 2 mm there is little change in the final solution and this value is a practical limit for grid refinement here.
+Refining the grid for the present case has an impact of a few degrees over the final solution (but takes much longer to solve), as illustrated below. Below 2 mm there is little change in the final solution, and this value is a practical limit for grid refinement here.
 
 ```{python}
 #| echo: true
@@ -461,7 +461,7 @@ plot = plot_pair(pair)
 
 ## Adding losses to the environment
 
-So far we have developed the ideas required to reach the final goal of conceiving a fully coupled system with a pair of reactors and walls. Again we proceed with a wrapper class which countains our problem variables, but in this case we fully develop it as a single block. Also, this time documentation is provided in the class itself as that seems clearer to the author in this case, and provides some closure to the study.
+So far, we have developed the ideas required to reach the final goal of conceiving a fully coupled system with a pair of reactors and walls. Again, we proceed with a wrapper class that contains our problem variables, but in this case we fully develop it as a single block. Also, this time the documentation is provided in the class itself, as that seems clearer in this case, and provides some closure to the study.
 
 The main increment in problem solution here is the extra step of solving for the wall temperature, which can be found from the global flux definition:
 
@@ -471,7 +471,7 @@ $$
 R_{tot} = \dfrac{1}{hA}+\dfrac{1}{2\pi{}lk}\log\dfrac{R_{ext}}{R_{int}}
 $$
 
-We make use of the main takes of the previous sections, which have shown that alternating reactor solution order is not always an advantage; here the problem has been programmed to use direct solution. Relaxation is applied to reactor fluxes, but not to wall flux, which is computed from a balance of the relaxed quantities for the sake of energy conservation.
+We make use of the main takeaways from the previous sections, which have shown that alternating the reactor solution order is not always an advantage; here the problem has been programmed to use the direct solution. Relaxation is applied to the reactor fluxes, but not to the wall flux, which is computed from a balance of the relaxed quantities for the sake of energy conservation.
 
 ```{python}
 #| echo: true
@@ -738,7 +738,7 @@ def sample_register_single(l=0.001, report_first=False):
     A = D * l
 
     # Discretize space and prepare inputs:
-    z = dicretize_length(L, l)
+    z = discretize_length(L, l)
     V = np.full_like(z, V)
     U = np.full_like(z, h * A)
 
@@ -784,7 +784,7 @@ plot.resize(8, 6)
 
 ## Registering flow for a pair of reactors
 
-As a last level of improvement, we generalize the approach for a pair of reactors. After some experimentation it was concluded that falling back to the alternating approach with intermediate wall solution lead to the best performance, probably because of decreased system stifness. Relaxing the wall heat flow allows for faster convergence.
+As a final level of improvement, we generalize the approach for a pair of reactors. After some experimentation, it was concluded that falling back to the alternating approach with intermediate wall solution led to the best performance, probably because of decreased system stiffness. Relaxing the wall heat flow allows for faster convergence.
 
 ```{python}
 #| echo: true
