@@ -24,6 +24,7 @@ format:
 - [Steady-state heat transfer](shorts/julia-steady-conduction.html)
 - [Transient heat transfer](shorts/julia-transient-heat-transfer.html)
 - [Thermal analysis simulation](shorts/julia-materials-kinetics.html)
+- [Acetylene pyrolysis](shorts/acetylene-pyrolysis-reactor.html)
 
 ## Data Science and Machine Learning
 

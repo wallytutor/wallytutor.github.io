@@ -1,0 +1,354 @@
+---
+title: Acetylene pyrolysis
+author: Walter Dal'Maz Silva
+date: today
+toc: true
+toc-depth: 2
+bibliography: _assets/references.bib
+execute:
+  cache: true
+  echo: false
+format:
+  html:
+    theme: default
+  typst:
+    margin: {x: 2.5cm, top: 3.0cm, bottom: 2.0cm}
+    logo:
+      path: _assets/logo.svg
+      width: 5cm
+      location: right top
+      padding: 10mm
+    fontsize: 12pt
+    linestretch: 1.25
+    fig-format: png
+    fig-dpi: 300
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.19.4
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+```{=typst}
+#show table: align.with(center)
+```
+
+In this notebook we present a comparitive study of three different mechanisms for the pyrolysis of acetylene (listed in `MECHS`). Simulations are carried out with the models provided by Majordome, here the *chain of PSR* reactor model used to represent a PFR. Below we start by importing the required tools and configuring the environment.
+
+```{python}
+#| echo: true
+import cantera as ct
+import numpy as np
+import pandas as pd
+
+from majordome import MajordomePlot
+from majordome import NormalFlowRate
+from majordome import PlugFlowChainCantera
+from scipy.interpolate import CubicSpline
+
+ct.suppress_thermo_warnings(suppress=True)
+
+MECHS = [
+    "c2h2/dalmazsi-2017.yaml",
+    "c2h2/graf-2007.yaml",
+    "c2h2/norinaga-2009.yaml"
+]
+```
+
+Reactor dimensions are provided below along with the discretization step used for the numerical simulation. Using the provided values we compute the surface area and volume of each cell, as well as the axial positions of the cells.
+
+```{python}
+#| echo: true
+# Reactor length [m]
+L = 0.52
+
+# Reactor diameter [m]
+D = 0.028
+
+# Discretization step [m]
+d = 0.01
+
+# Surface area of each cell [m²]
+A_cell = d * np.pi * D
+
+# Volume of each cell [m³]
+V_cell = d * np.pi * (D/2)**2
+
+# Axial position of each cell [m]
+z = np.arange(d/2, L-d/2+0.1*d, d)
+
+# Array of cell volumes [m³]
+V = np.full_like(z, V_cell)
+```
+
+Acetylene is not stored pure, but always contains some acetone in it. Depending on the mechanism we use (whether or not it includes acetone) we need to account for it in a particular way. Below is the code that evaluates the *bottle* mixture composition for a given fraction of acetylene in the process mixture. The recommended default composition comes from @Norinaga2009.
+
+```{python}
+#| echo: true
+def initial_mixture(sol, fraction):
+    """ Compute mixture accounting for imputiries. """
+    if "CH3COCH3" in sol.species_names:
+        X = {"C2H2"     : 0.980 * fraction,
+             "CH4"      : 0.002 * fraction,
+             "CH3COCH3" : 0.018 * fraction}
+    else:
+        X = {"C2H2"     : 0.998 * fraction,
+             "CH4"      : 0.002 * fraction}
+
+    X["N2"] = 1.0 - sum(X.values())
+    return X
+```
+
+Our reactor has an imposed wall temperature profile, as characterized by @DalMazSilva2017PhD. Measured profiles are provided below.
+
+```{python}
+#| echo: true
+PROFILES = pd.DataFrame({
+    "z":    [ 0.00,   0.05,   0.10,   0.12,   0.15,   0.20, 0.25,
+              0.30,   0.35,   0.40,   0.45,   0.50,   0.52  ],
+    "773":  [ 298.0,  303.0,  330.0,  400.0,  650.0,  750.0, 762.0,
+              763.0,  763.0,  763.0,  582.0,  440.0,  400.0 ],
+    "873":  [ 298.0,  299.0,  360.0,  503.0,  757.0,  834.0, 850.0,
+              869.0,  859.0,  849.0,  698.0,  546.0,  400.0 ],
+    "973":  [ 298.0,  299.0,  420.0,  653.0,  873.0,  918.0, 949.0,
+              971.0,  954.0,  937.0,  780.0,  623.0,  400.0 ],
+    "1023": [ 298.0,  299.0,  550.0,  689.0,  896.0,  965.0, 1001.0,
+             1018.0, 1001.0,  984.0,  837.0,  690.0,  400.0 ],
+    "1073": [ 298.0,  299.0,  550.0,  726.0,  919.0, 1013.0, 1052.0,
+             1064.0, 1048.0, 1031.0,  894.0,  757.0,  400.0 ],
+    "1123": [ 298.0,  299.0,  550.0,  755.0,  959.0, 1057.0, 1098.0,
+             1110.0, 1095.0, 1080.0,  931.0,  782.0,  400.0 ],
+    "1173": [ 298.0,  299.0,  550.0,  783.0, 1000.0, 1101.0, 1143.0,
+             1156.0, 1143.0, 1129.0,  968.0,  806.0,  400.0 ],
+    "1223": [ 298.0,  299.0,  550.0,  793.0, 1048.0, 1151.0, 1189.0,
+             1205.0, 1189.0, 1172.0,  991.0,  809.0,  400.0 ],
+    "1273": [ 298.0,  299.0,  550.0,  803.0, 1095.0, 1200.0, 1235.0,
+             1253.0, 1234.0, 1214.0, 1013.0,  811.0,  400.0 ],
+})
+```
+
+To be able to apply this profile, we need to implement a function evaluating the heat flow in each cell along the domain. Since we are dealing with low pressure-low speed flows, Nusselt number for laminar flow in a tube is taken for granted. The following function wraps the creation of the required function. Please, notice that as the mechanism by @Norinaga2009 does not include transport properties, we use a fallback value for the thermal conductivity.
+
+```{python}
+#| echo: true
+def make_heat_flow_condition(sol, T_wall, Nu=3.66):
+    """ Create heat transfer function for each cell in the syste,. """
+    def heat_flow(i, T):
+        try:
+            k = sol.thermal_conductivity
+        except:
+            k = 0.025 # Norinaga lacks transport!
+
+        # Evaluate global heat transfer coefficient.
+        U = A_cell * Nu * k / D
+
+        return -U * (T - T_wall(z[i]))
+
+    return heat_flow
+```
+
+Function `solve` puts together the whole workflow for simulating the system. It creates a solution for reactor initialization, handle customary to SI unit conversion, provides the coupling with the environment, solves the system, and retrieves results.
+
+```{python}
+#| echo: true
+def solve(mechanism, fraction, qdot, P, T_wall, *, T_env=298.15,
+          K=0.01, verbose=False, **kwargs):
+    """ Integrate reactor model with given operating conditions. """
+    # Create reactor model (converting pressure in hPa to Pa).
+    sol = ct.Solution(mechanism)
+    sol.TPX = T_env, P * 100, initial_mixture(sol, fraction)
+    apfr = PlugFlowChainCantera(sol.source, sol.name, z, V, P=sol.P, K=K)
+
+    # Evaluate mass flow rate from mechanism [kg/s].
+    nfr = NormalFlowRate(mechanism, X=sol.X)
+
+    # Setup inlet conditions.
+    sources = apfr.get_reactor_data()
+    sources.m[0] = nfr(1.0e-06 * 60 * qdot) # SCCM to Nm³/h
+    sources.h[0] = sol.h
+    sources.Y[0, :] = sol.Y
+    sources.Q[:] = 0
+
+    # Register heat transfer.
+    heat_flow = make_heat_flow_condition(sol, T_wall)
+    apfr.register_heat_flow(heat_flow)
+
+    # Solve and process results
+    apfr.update(sources)
+
+    cols = kwargs.get("cols", ["z_cell", "Q_cell", "T", "X"])
+    data = apfr.states.to_pandas(cols=cols)
+
+    return apfr, data
+```
+
+Rather than relying on the built-in plotting function of the reactor object, we define a custom function which leverages the `MajordomePlot` class.
+
+```{python}
+#| echo: true
+@MajordomePlot.new(size=(8, 6), shape=(2, 2), sharex=False)
+def plot(df, *, plot):
+    x = df["z_cell"].to_numpy()
+
+    fig, ax = plot.subplots()
+
+    ax[0].plot(x, df["T"], "k")
+    ax[0].set_ylabel("Temperature [K]")
+
+    ax[1].plot(x, 100 * df["X_C2H2"], "k", label=r"$\text{C}_2\text{H}_2$")
+    ax[1].set_ylabel("Mole percentage")
+    ax[1].legend(loc=1, fontsize=8)
+
+    ax[2].plot(x, 100 * df["X_H2"], "k", label=r"$\text{H}_2$")
+    ax[2].plot(x, 100 * df["X_C4H4"], "r", label=r"$\text{C}_4\text{H}_4$")
+    ax[2].set_ylabel("Mole percentage")
+    ax[2].legend(loc=2, fontsize=8)
+
+    ax[3].plot(x, 100 * df["X_CH4"], "k", label=r"$\text{CH}_4$")
+    ax[3].plot(x, 100 * df["X_C2H4"], "r", label=r"$\text{C}_2\text{H}_4$")
+    ax[3].plot(x, 100 * df["X_C6H6"], "b", label=r"$\text{C}_6\text{H}_6$")
+    ax[3].set_ylabel("Mole percentage")
+    ax[3].legend(loc=2, fontsize=8)
+
+    for a in ax:
+        a.set_xlabel("Position [m]")
+```
+
+## Reference case
+
+The main case studied in @DalMazSilva2017PhD concerns the decomposition of 36% mol/mol of acetylene in the presence of nitrogen at 50 hPa and 222 SCCM of flow rate, with maximum reactor temperature set to 1173.15 K. These conditions are used below to interpolate wall profile and then used in what follows.
+
+```{python}
+#| echo: true
+T_LABEL = "1173" # K
+
+ref_case = {
+    "fraction": 0.36, # Mole fraction
+    "qdot": 222,      # SCCM
+    "P": 50,          # hPa
+    "T_wall": CubicSpline(PROFILES["z"], PROFILES[T_LABEL])
+}
+```
+
+The following cells run the actual simulations:
+
+```{python}
+#| echo: true
+%%time
+results, df = solve(MECHS[1], **ref_case)
+_ = plot(df)
+```
+
+```{python}
+#| echo: true
+%%time
+results, df = solve(MECHS[0], **ref_case)
+_ = plot(df)
+```
+
+::: {.callout-warning title="This will take a very long time"}
+
+```{python}
+#| echo: true
+# %%time
+# results, df = solve(MECHS[2], **ref_case)
+# _ = plot(df)
+```
+
+:::
+
+## Scan table
+
+All experimental conditions provided in @DalMazSilva2017PhD are collected in the following list of dictionaries.
+
+```{python}
+#| echo: true
+TABLE5_9 = [
+    dict(N= 1, P= 50, Q=222, T= 773, X_meas=0.352),
+    dict(N= 2, P= 50, Q=222, T= 873, X_meas=0.364),
+    dict(N= 3, P= 50, Q=222, T= 973, X_meas=0.364),
+    dict(N= 4, P= 50, Q=222, T=1073, X_meas=0.346),
+    dict(N= 5, P= 50, Q=222, T=1123, X_meas=0.312),
+    dict(N= 6, P= 50, Q=222, T=1173, X_meas=0.307),
+    dict(N= 7, P= 50, Q=222, T=1273, X_meas=0.288),
+    dict(N= 8, P= 30, Q=222, T=1173, X_meas=0.323),
+    dict(N= 9, P= 30, Q=222, T=1223, X_meas=0.314),
+    dict(N=10, P=100, Q=222, T=1173, X_meas=0.249),
+    dict(N=11, P=100, Q=222, T=1223, X_meas=0.226),
+    dict(N=12, P=100, Q=222, T=1273, X_meas=0.201),
+    dict(N=13, P=100, Q=378, T=1023, X_meas=0.343),
+    dict(N=14, P=100, Q=378, T=1123, X_meas=0.298),
+]
+```
+
+A helper function is provided to run all experimental conditions:
+
+```{python}
+#| echo: true
+def tabulate_with_mechanism(mech, df=None):
+    """ Evaluate all experimental conditions with mechanism. """
+    name = mech.split("/")[1].split(".")[0].replace("-", "_")
+    x_name, e_name = f"X_{name}", f"err_{name}"
+
+    table = TABLE5_9.copy()
+
+    for k, row in enumerate(TABLE5_9):
+        print(f"Working on case no. {k+1}")
+        T_name = str(int(row["T"]))
+        conf = {
+            "fraction": 0.36,
+            "qdot": row["Q"],
+            "P": row["P"],
+            "T_wall": CubicSpline(PROFILES["z"], PROFILES[T_name])
+        }
+        _, df = solve(mech, **conf)
+        table[k]["X_calc"] = float(df["X_C2H2"].iloc[-1])
+
+    scan = pd.DataFrame(table)
+    scan = scan.rename(columns={"X_calc": x_name})
+
+    if df is None:
+        df = scan
+
+    df[e_name] = 100 * (scan[x_name] / scan["X_meas"] - 1)
+    return df
+```
+
+The following cells run the actual simulations:
+
+```{python}
+#| echo: true
+%%time
+df = tabulate_with_mechanism(MECHS[0], df=None)
+```
+
+```{python}
+#| echo: true
+%%time
+df = tabulate_with_mechanism(MECHS[1], df=df)
+```
+
+::: {.callout-warning title="This will take a very long time"}
+
+```{python}
+#| echo: true
+# %%time
+# df = tabulate_with_mechanism(MECHS[2], df=df)
+```
+
+:::
+
+Finally, we summarize all results of acetylene conversion in a single table. Please notice that validation was done only against the main species due to experimental limitations, and minor species are certainly predicted to a lesser degree of accuracy. The skeletal mechanism provided by @DalMazSilva2017PhD provides a better predictive performace compared to the global one from @Graf2007. Nevertheless, this comes with a greater computational cost, but still small compared to the needs to simulate the mechanism by @Norinaga2009.
+
+```{python}
+#| echo: true
+error_cols = [c for c in df.columns if c.startswith("err")]
+rmse_frame = np.sqrt((df[error_cols]**2).mean())
+pd.DataFrame(rmse_frame).T
+```
