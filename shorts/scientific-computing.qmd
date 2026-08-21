@@ -19,17 +19,6 @@ format:
     linestretch: 1.25
     fig-format: png
     fig-dpi: 300
-jupyter:
-  jupytext:
-    text_representation:
-      extension: .qmd
-      format_name: quarto
-      format_version: '1.0'
-      jupytext_version: 1.19.4
-  kernelspec:
-    display_name: Python 3 (ipykernel)
-    language: python
-    name: python3
 ---
 
 Scientific Computing - not to be confused with High-Performance Computing (HPC) - is a branch of Computer Science highly intertwined with Physical Sciences and Engineering, and more recently Life Sciences. To put it simple, it concerns any use of a processor to perform a scientific task, whether that is simply plotting a cloud of data, analysing a time-series, sequencing DNA, or simulating a large-scale combustion turbine. In this note we will touch some of the topics related to Scientific Computing, specially in fields relevant the author's experience and teaching interests, mostly applied mathematics (thus certainly HPC), machine learning, and scientific software engineering. It will try to serve as a guide for introducing the field, and more specifically how to be efficient at producing reproducible Science, thus the *meta* aspects of the field.
@@ -39,7 +28,9 @@ Scientific Computing - not to be confused with High-Performance Computing (HPC) 
 As of 2026, to be a well-rounded scientific computing practitioner, you need to be proficient in several technologies, including language models. Nonetheless, there are more classical skills that sometimes are overseen, but I deem mandatory.
 
 ::: {.callout-note title="We are limited beings"}
+
 It is humanly impossible to master everything at once; even after more than 10 years in the field as of today I only have a grasp in the tools I do not use everyday. Software and methods evolve, and unless you keep using a specific tool you simply cannot afford to keep up to date with it. Sometimes when looking at job offers I get overwhelmed by what recruiters are asking candidates purely out of arrogance. Wanting everything at once is the same as wanting nothing. But that should not be a roadblock for a scientist in the long term. As you get used to scientific software, getting back to a good level of some tool you used in the past is quick (it is true that it is not *extremely* fast in some cases) and learning new tools for which you already know the science behind is trivial. Even exploring new fields become easy in some cases.
+
 :::
 
 The minimal skill set any scientist should have starts with version control, everything else is worthless without it, currently that means Git (other tools like SVN, Mercurial, and Darcs are niche). You should be able to track the changes in your project over time, branch for testing new ideas, merge them back without complications, release versions, and so on. It should not be limited to software, but also notebooks, reports, everything should be thought to be produced as raw text so that version control works well. It is also the basis for collaboration and healthy interaction between team members. A subtle point I intentionally skipped here is the versioning of data. That is still a touchy subject for which classical version control tools - including Git - were not conceived to deal with, and no perfect solution exists nowadays.
@@ -76,6 +67,8 @@ Julia also supports [Unicode input](https://docs.julialang.org/en/v1/manual/unic
 
 ## Python workflows
 
+<!-- A workflow starts with an environment, reelaborate this: If this subject is new to you, to be able to successfully follow the contents you might learn a bit about the environment we will use, VS Code and the minimum about command prompt on . -->
+
 The evolution of Python package management has progressed from the foundational [pip](https://pip.pypa.io/en/stable/), through the era of [Conda](https://docs.conda.io/projects/conda/en/latest/index.html), to the modern dominance of [uv](https://docs.astral.sh/uv/). While `pip` remains the official tool for interacting with the [Python Package Index (PyPI)](https://pypi.org/), its dependency resolution speed often poses limitations in complex projects. Conda gained significant popularity when Python expanded beyond POSIX-compliant environments to multi-platform systems, offering robust capabilities for environment isolation and package management, though its strong association with the [Anaconda](https://anaconda.org/) ecosystem eventually reduced its appeal. The landscape has been revolutionized by `uv`, a tool written in [Rust](https://rust-lang.org/) that provides unparalleled speed in dependency resolution, environment creation, and environment recycling. Beyond pure package management, `uv` supports the creation of standard `pyproject.toml` configurations for non-package executable projects and integrates natively with [PyO3](https://pyo3.rs/) to compile high-performance Rust extensions, establishing itself as the *de facto* standard for modern Python workflows as of 2026.
 
 The scientific Python ecosystem relies on highly mature, core libraries that function as indispensable extensions of the language itself, most notably the previously called [SciPy stack](https://projects.scipy.org/stackspec.html), which encompasses [NumPy](https://numpy.org/), [Pandas](https://pandas.pydata.org/), [Matplotlib](https://matplotlib.org/), [SymPy](https://www.sympy.org/en/index.html), and [SciPy](https://scipy.org/). For machine learning, workflows branch into classical approaches and deep learning. Classical machine learning and data preparation are dominated by [Scikit-learn](https://scikit-learn.org/stable/), which provides an extensive suite of standard algorithms, and [Scikit-image](https://scikit-image.org/), frequently employed for image analysis and dataset generation. When projects scale to require massive computational resources and neural networks, deep learning frameworks such as [PyTorch](https://pytorch.org/), [TensorFlow](https://www.tensorflow.org/), and [JAX](https://docs.jax.dev/en/latest/index.html) are utilized. These tools are designed to maximize performance and provide seamless scalability directly within GPU memory.
@@ -86,56 +79,51 @@ Specialized scientific domains further rely on high-quality, academic-backed nic
 
 Historically, technical report generation relied heavily on *LaTeX*, a highly mature typesetting system initiated by Donald Knuth in the 1970s. While LaTeX offers unmatched typographical quality, extensive package ecosystems, and precise formatting for mathematical equations, it is frequently plagued by cryptic compilation logs, outdated PDF-based documentation, and frustratingly slow compilation times. To alleviate this friction, researchers transitioned to writing in *Markdown* processed via *Pandoc*, which offers a clean, highly readable syntax and a low learning curve while still parsing native LaTeX equations and relative image paths. However, this setup remains structurally limited in managing complex tables and ultimately retains an underlying dependency on a slow LaTeX engine for final PDF rendering. To bridge the gap between active computation and narrative, *Jupyter Notebooks* emerged, allowing scientists to execute code, render dynamic figures, and write text within a single browser-based document. Yet, the overhead of managing local servers, configuring isolated kernels, and navigating a cluttered cell-based interface often proves cumbersome for continuous daily writing.
 
-These limitations are elegantly resolved by *Quarto*, a modern, polyglot publishing platform that extends classic Markdown into the `.qmd` format, enabling structured layouts through extended markup like divs while supporting direct, interactive code execution inside professional editors. Quarto facilitates the organization of highly complex documents, books, or theses using intuitive *YAML* configurations, bypassing the convoluted setup of legacy alternatives. Furthermore, modern versions of Quarto integrate with *Typst*, an open-source, Rust-powered typesetting language designed to replace LaTeX. Typst delivers near-instantaneous compilation speeds, clean mathematical syntax, and highly precise, readable error diagnostics, allowing Quarto to bypass legacy LaTeX backends entirely. Pragmatically, this modern document-generation workflow is orchestrated through a highly reproducible toolchain: a virtual environment is initialized and Python dependencies are resolved rapidly using *uv* via `uv sync`, after which the entire project is compiled to multiple formats using `quarto render` (or selectively targeted via `--to html` and `--to pdf`), and finally published directly to GitHub Pages using the `quarto publish gh-pages` utility.
+These limitations are elegantly resolved by *Quarto*, a modern, polyglot publishing platform that extends classic Markdown into the `.qmd` format, enabling structured layouts through extended markup-like *div's*, while supporting direct, interactive code execution inside professional editors. Quarto facilitates the organization of highly complex documents, books, or theses using intuitive *YAML* configurations, bypassing the convoluted setup of legacy alternatives. Furthermore, modern versions of Quarto integrate with *Typst*, an open-source, Rust-powered typesetting language designed to replace LaTeX. Typst delivers near-instantaneous compilation speeds, clean mathematical syntax, and highly precise, readable error diagnostics, allowing Quarto to bypass legacy LaTeX backends entirely. Pragmatically, this modern document-generation workflow is orchestrated through a highly reproducible toolchain: a virtual environment is initialized and Python dependencies are resolved rapidly using *uv* via `uv sync`, after which the entire project is compiled to multiple formats using `quarto render` (or selectively targeted via `--to html` and `--to pdf`), and finally published directly to GitHub Pages using the `quarto publish gh-pages` utility.
 
 ## Operating systems
 
 *Upcoming*
 
+<!-- A sample setup of an operating system for scientific computing and practicing the above skills is provided in a section dedicated to Ubuntu. -->
+
+## Programming languages
+
+<!-- Python: our main tool of trade. -->
+In modern scientific computing, Python is widely recognized as a highly ergonomic orchestration layer, but it cannot handle performance-critical tasks in isolation. Historically, Python has been extended with compiled languages to execute intensive numerical operations. Developing robust scientific software requires navigating diverse programming paradigms, compelling researchers to understand the critical trade-offs between development ergonomics, code readability, memory safety, and raw computational efficiency. The strategic selection of these languages and their respective build systems ultimately shapes not only the execution speed of mathematical algorithms but also the long-term maintainability, viability, and reproducibility of academic and industrial codebases.
+
+<!-- C/C++: know some, master depending on your job. -->
+- **C:** Operating under a strict procedural paradigm where explicit functions modify data encapsulated in structures, C is highly regarded for its maturity and absolute stability. Python's native binary interfaces (ABI) were conceived specifically to align with C. This language remains the foundation of crucial low-level differential algebraic solvers such as the SUNDIALS suite (encompassing CVODE and IDA/IDAS), which serves as the core numerical backend for advanced automatic differentiation libraries like CasADi. However, working with C imposes the overhead of manually orchestrating compilation, which is typically managed via classic Makefiles as CMake is often an overkill for smaller scientific projects.
+
+- **C++:** Diverging significantly from pure C - especially following the C++11 standard - C++ embraces object-oriented programming and template-based metaprogramming to encapsulate state and data mutations within classes. While it is extensively utilized in complex fluid mechanics and thermophysical packages such as OpenFOAM, SU2, and Cantera, C++ faces substantial resistance within the scientific community due to the frequent abuse of deep class inheritance. This architectural complexity often results in codebases that are exceptionally difficult to audit, navigate, and debug.
+
+<!-- Fortran: it has risen from dead, but its documentation seems so unprofessional that I would hardly make any effort to keep grandpa alive. -->
+- **Fortran:** As the pioneering textual programming language dating back to the punch-card era of 1958, Fortran served as the foundational pillar of computational fluid dynamics (CFD) and remains appreciated by traditional engineers for its direct manipulation of multidimensional arrays. However, the language carries severe structural flaws, such as rigid and unergonomic textual input/output (I/O) formatting, which is highly problematic since formatting and exporting data is critical for downstream analytical pipelines. Furthermore, its history is plagued by a disorganized coexistence of incompatible dialects, such as the fixed-format FORTRAN 77 and newer standards like Fortran 2008, which has accumulated prohibitive technical debt and confined its modern utility strictly to maintaining legacy code.
+
+<!-- Rust: yes. -->
+- **Rust:** Emerging as a revolutionary building block for scientific computing, Rust guarantees compile-time memory safety without the runtime overhead of a garbage collector through its strict ownership and borrow checking rules. It dramatically streamlines development workflows by unifying package management and build automation into a single tool, Cargo, bypassing the historic fragmentation of Makefiles and CMake. While compiling extensions for Python via PyO3 provides unmatched performance and safety, Rust's strict static linking design requires careful architectural planning to avoid code duplication in large modular systems, and it currently lacks mature, native GPU acceleration interfaces due to GPU technologies historically evolving as C++ extensions.
+
+<!-- Julia: mixed feelings. What is happening around Julia Hub and the way they see open source licensing depresses me. -->
+- **Julia:** Offering an intuitive, Python-like syntax coupled with the expressive power of multiple dispatch, Julia facilitates the creation of generic and mathematically elegant libraries. However, its practical adoption is severely hindered by agonizingly slow package precompilation times (the "time-to-first-plot" issue) and a convoluted workflow for managing local, editable packages. Additionally, reactive notebook environments like Pluto.jl lack native customization or PDF export capabilities, while commercial and community frictions surrounding JuliaHub have prompted researchers to place the language on standby in favor of the Python-Rust synergy.
+
 <!--
-
-If this subject is new to you, to be able to successfully follow the contents you might learn a bit about the environment we will use, VS Code and the minimum about command prompt on .
-
-A sample setup of an operating system for scientific computing and practicing the above skills is provided in a section dedicated to Ubuntu.
-
-It is also worth getting familiar with high-performance computing (HPC); in the [Top 500](https://top500.org/) page you can get to know the most powerful computers on Earth. The [specification benchmarking](https://spec.org/) page allows for the check of hardware specification, what is interesting when preparing investment in a computing structure. Lastly, when working in multi-user systems it is worth knowing about job management systems such as [Slurm](https://www.schedmd.com/).
-
-## Languages
-
-
-- [ ] Add an opinionated article about the role of different languages to coding.qmd; discuss C/C++, Fortran, Python, Rust, Go, and others (.NET, functional programming, LISP family).
-
-
-- Python: our main tool of trade.
-
-- C/C++: know some, master depending on your job.
-
-- Fortran: it has risen from dead, but its documentation seems so unprofessional that I would hardly make any effort to keep grandpa alive.
-
-- Rust: yes.
-
-- Julia: mixed feelings. What is happening around Julia Hub and the way they see open source licensing depresses me.
-
 - R: if you are into statistics.
-
 - Matlab/Octave/Scilab: this is the triad to avoid!
-
 - .NET (C#)
-
 - .NET (F#)
-
 - Java
-
 - JavaScript/TypeScript:
-
 - Go: this is a no-go!
-
 - Haskell: interesting but really niche.
-
 - Lisp/Scheme: same as Haskell. Useful for advanced Ansys Fluent usage.
-
 - Lua: I had happy customers in the past thanks to Lua. You can write your core code in Rust or C, and enable extensions in a language that anyone without programming background can grasp is a few minutes.
-
 - Gnuplot: for standalone CLI applications this is useful to have. You can delegate plotting to an external tool by machine-generating scripts.
-
  -->
+
+## Closing remarks
+
+If you reached this far is certainly because the subject matters to you. This article just uncovered the surface of what is scientific computing, and to remain *mostly* domain agnostic, we discussed mainly topics related to the daily life and programming practices.
+
+It is also worth getting familiar with high-performance computing (HPC); in the [Top 500](https://top500.org/) page you can get to know the most powerful computers on Earth. The [specification benchmarking](https://spec.org/) page allows for the check of hardware specification, what is interesting when preparing investment in a computing structure. Lastly, when working in multi-user systems it is worth knowing some basics about job management systems such as [Slurm](https://www.schedmd.com/). That will certainly avoid to get in trouble with your more experienced colleagues!
+
+Good luck in your journey into scientific computing!
